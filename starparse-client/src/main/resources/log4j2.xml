@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%-6r [%t] %-5p %18.18c %x - %m%n"/>
+        </Console>
+        
+        <RollingFile name="LogFile" fileName="starparse.log" 
+                     filePattern="starparse-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%d{ISO8601} [%t] %-5p %18.18c %x - %m%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="1"/>
+        </RollingFile>
+        
+
+    </Appenders>
+    
+    <Loggers>
+        <Logger name="com.ixale.starparse" level="INFO" additivity="false">
+            <AppenderRef ref="LogFile"/>
+        </Logger>
+        
+        <Root level="warn">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration> 

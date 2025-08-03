@@ -20,8 +20,8 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import org.apache.log4j.Level;
-import org.apache.log4j.spi.LoggingEvent;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -95,7 +95,7 @@ public class StarparseApp extends Application {
 			private Long lastErrorReported = null;
 
 			@Override
-			public void onMessage(final String msg, final LoggingEvent event) {
+			public void onMessage(final String msg, final LogEvent event) {
 				Platform.runLater(() -> mainPresenter.getStatusMessageLabel().setText(msg));
 				if (event.getLevel().equals(Level.ERROR)) {
 					if (lastErrorReported != null && (lastErrorReported + ERROR_REPORT_INTERVAL > System.currentTimeMillis())) {
@@ -106,7 +106,7 @@ public class StarparseApp extends Application {
 					final Thread t = new Thread() {
 						public void run() {
 							setName("ErrorReporter");
-							reportError(msg, event.getThrowableInformation() != null ? event.getThrowableInformation().getThrowable() : null);
+							reportError(msg, event.getThrown());
 						}
 					};
 					t.setDaemon(true);
