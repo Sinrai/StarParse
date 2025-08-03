@@ -60,8 +60,14 @@ public class FlashMessage {
 				@Override
 				public void handle(ActionEvent arg0) {
 					try {
-						Desktop.getDesktop().browse(new URI(url));
+						// Use xdg-open on Linux to avoid GDK warnings
+						if (System.getProperty("os.name").toLowerCase().contains("linux")) {
+							Runtime.getRuntime().exec(new String[]{"xdg-open", url});
+						} else {
+							Desktop.getDesktop().browse(new URI(url));
+						}
 					} catch (Exception e) {
+						// Silently ignore errors
 					}
 				}
 			});

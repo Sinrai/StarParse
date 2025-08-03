@@ -15,6 +15,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -194,7 +196,7 @@ public class FileLoader {
 			}
 
 			fillParselyCombatsInfo(selectedCombats, combatsInfo, context);
-			return sb.toString().getBytes();
+			return sb.toString().getBytes("WINDOWS-1252");
 
 		} catch (NullPointerException e) {
 			throw new Exception("NPE: [" + from + ", " + to + "], all: " + Arrays.asList(allCombats) + ", sel: " + Arrays.asList(selectedCombats));
@@ -244,7 +246,7 @@ public class FileLoader {
 
 		final ExtractedCombat ec = new ExtractedCombat();
 
-		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "WINDOWS-1252"))) {
 
 			String line;
 			boolean isReading = (from == null);
