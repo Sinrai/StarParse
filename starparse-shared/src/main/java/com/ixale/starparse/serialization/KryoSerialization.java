@@ -20,7 +20,6 @@ import com.ixale.starparse.domain.Raid;
 import com.ixale.starparse.domain.RaidBoss;
 import com.ixale.starparse.domain.RaidBossName;
 import com.ixale.starparse.domain.RaidChallengeName;
-import com.ixale.starparse.domain.RaidGroup;
 import com.ixale.starparse.domain.RaidRequest;
 import com.ixale.starparse.domain.stats.AbsorptionStats;
 import com.ixale.starparse.domain.stats.ChallengeStats;
@@ -28,7 +27,6 @@ import com.ixale.starparse.domain.stats.CombatEventStats;
 import com.ixale.starparse.domain.stats.CombatStats;
 import com.ixale.starparse.ws.RaidCombatMessage;
 import com.ixale.starparse.ws.RaidCombatMessageBatch;
-import com.ixale.starparse.ws.RaidGroupMessage;
 import com.ixale.starparse.ws.RaidPlayerMessage;
 import com.ixale.starparse.ws.RaidRequestMessage;
 import com.ixale.starparse.ws.RaidResponseMessage;
@@ -49,9 +47,6 @@ public class KryoSerialization {
 
 				kryo.register(ResultMessage.class);
 				kryo.register(ResultMessage.Type.class);
-				kryo.register(RaidGroup.class);
-				kryo.register(RaidGroupMessage.class);
-				kryo.register(RaidGroupMessage.Action.class);
 				kryo.register(RaidCombatMessage.class);
 				kryo.register(RaidCombatMessage[].class);
 				kryo.register(RaidCombatMessageBatch.class);

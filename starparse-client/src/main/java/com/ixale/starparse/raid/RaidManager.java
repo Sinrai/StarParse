@@ -236,11 +236,7 @@ public class RaidManager {
 
 		if (raidGroupName == null) {
 			// fail
-			if (config.getRaidGroups().isEmpty()) {
-				fireOnError("No raid group selected, create or join them from the 'Raiding > Settings' menu", false);
-			} else {
-				fireOnError("No raid group selected, select one from the 'Raiding' menu first", false);
-			}
+			fireOnError("No raid group selected", false);
 			isEnabled = false;
 			return;
 		}

@@ -6,7 +6,7 @@ import com.ixale.starparse.domain.CombatInfo;
 import com.ixale.starparse.domain.CombatLog;
 import com.ixale.starparse.domain.ConfigTimer;
 import com.ixale.starparse.domain.RaidBossName;
-import com.ixale.starparse.domain.RaidGroup;
+
 import com.ixale.starparse.domain.stats.CombatStats;
 import com.ixale.starparse.gui.Config;
 import com.ixale.starparse.gui.FlashMessage;
@@ -112,7 +112,7 @@ public class MainPresenter implements Initializable {
 	private Parent root;
 
 	@FXML
-	private ToggleButton parseButton, raidButton;
+	private ToggleButton parseButton;
 
 	@FXML
 	private AnchorPane headCombat;
@@ -146,9 +146,9 @@ public class MainPresenter implements Initializable {
 	private Hyperlink linkTwitter, linkDonate;
 
 	@FXML
-	private Menu recentMenu, raidGroupsMenu, timersMenu;
+	private Menu recentMenu, timersMenu;
 	@FXML
-	private MenuItem raidGroupsSettingsMenu, timersSettingsMenu;
+	private MenuItem timersSettingsMenu;
 	@FXML
 	private CheckMenuItem timersAPopoutMenu, timersBPopoutMenu, timersCPopoutMenu,
 			timersCenterPopoutMenu, personalStatsPopoutMenu, challengesPopoutMenu,
@@ -879,10 +879,6 @@ public class MainPresenter implements Initializable {
 	final Runnable onRaidStartedAction = new Runnable() {
 		@Override
 		public void run() {
-			raidButton.setText("Raiding");
-			raidButton.setSelected(true);
-			raidButton.getStyleClass().remove("toggle-button-inter");
-
 			// will force repaint
 			raidPresenter.setRaidGroup(raidManager.getRaidGroupName(), raidManager.isGroupAdmin());
 
@@ -911,15 +907,6 @@ public class MainPresenter implements Initializable {
 	final Runnable onRaidStoppedAction = new Runnable() {
 		@Override
 		public void run() {
-			if (raidManager.isEnabled()) {
-				raidButton.setText("Waiting");
-				raidButton.setSelected(true);
-				raidButton.getStyleClass().add("toggle-button-inter");
-			} else {
-				raidButton.setText("Raid");
-				raidButton.setSelected(false);
-				raidButton.getStyleClass().remove("toggle-button-inter");
-			}
 			raidPresenter.setRaidGroup(null, false);
 			raidNotesPopoutPresenter.updateNoteIfNeeded(null, false);
 		}
@@ -949,9 +936,6 @@ public class MainPresenter implements Initializable {
 		@Override
 		public void onError(final String message, final boolean reconnecting) {
 			Platform.runLater(() -> {
-				if (reconnecting) {
-					raidButton.setText("Waiting");
-				}
 				setFlash("Raiding error: " + message, Type.ERROR);
 			});
 		}
@@ -1218,9 +1202,6 @@ public class MainPresenter implements Initializable {
 
 		// raid manager
 		raidManager = new RaidManager(config, raidListener);
-		if (config.getLastRaidGroupName() != null) {
-			raidManager.setRaidGroup(config.getLastRaidGroupName(), config.isRaidGroupAdmin(config.getLastRaidGroupName()));
-		}
 
 		// wire tabs to controllers
 		StatsTab.setOnUpdateRequestedAction(this, onUpdateRequestedAction);
@@ -1264,25 +1245,7 @@ public class MainPresenter implements Initializable {
 		settingsDialogPresenter.setConfig(config);
 		settingsDialogPresenter.setStage(getRootStage());
 		final SettingsDialogPresenter.SettingsUpdatedListener settings = new SettingsDialogPresenter.SettingsUpdatedListener() {
-			@Override
-			public void onRaidGroupsUpdated(final RaidGroup newGroup) {
-				// currently raiding & relevant group affected?
-				boolean found = false;
-				if (raidManager.getRaidGroupName() != null) {
-					for (RaidGroup rg : config.getRaidGroups()) {
-						if (rg.getName().equals(raidManager.getRaidGroupName())) {
-							// found
-							found = true;
-							break;
-						}
-					}
-					if (!found) {
-						// group is no longer valid, will force stop if running
-						raidManager.setRaidGroup(null, false);
-					}
-				}
-				rebuildRaidGroupsMenu(newGroup);
-			}
+
 
 			@Override
 			public void onOverlaysSettings(final Color backgroundColor, final Color textColor,
@@ -1407,7 +1370,6 @@ public class MainPresenter implements Initializable {
 
 		// setup initial menus and content
 		rebuildRecentMenu();
-		rebuildRaidGroupsMenu(null);
 		rebuildTimersMenu();
 		resetCombatStats();
 
@@ -1798,18 +1760,7 @@ public class MainPresenter implements Initializable {
 		Platform.runLater(onThrashToggleAction);
 	}
 
-	public void handleRaid(@SuppressWarnings("unused") ActionEvent event) {
-		try {
-			if (raidButton.isSelected()) {
-				setParsing(true);
-				setRaiding(true);
-			} else {
-				setRaiding(false);
-			}
-		} catch (Exception e) {
-			logger.error("Raiding failed: " + e.getMessage(), e);
-		}
-	}
+
 
 	private synchronized void setRaiding(boolean isEnabled) {
 
@@ -1838,10 +1789,7 @@ public class MainPresenter implements Initializable {
 		settingsDialogPresenter.show();
 	}
 
-	public void handleRaidGroupsSettings(@SuppressWarnings("unused") ActionEvent event) {
-		settingsDialogPresenter.show();
-		settingsDialogPresenter.selectRaidGroups();
-	}
+
 
 	public void handleOverlaysSettings(@SuppressWarnings("unused") ActionEvent event) {
 		settingsDialogPresenter.show();
@@ -1921,55 +1869,7 @@ public class MainPresenter implements Initializable {
 		}
 	}
 
-	private void rebuildRaidGroupsMenu(final RaidGroup newGroup) {
-		raidGroupsMenu.getItems().clear();
 
-		for (final RaidGroup raidGroup : config.getRaidGroups()) {
-			final CheckMenuItem item = new CheckMenuItem(raidGroup.getName());
-
-			item.setOnAction(arg0 -> {
-				if (item.isSelected()) {
-					for (final MenuItem mi : raidGroupsMenu.getItems()) {
-						if (mi instanceof CheckMenuItem && mi != item) {
-							((CheckMenuItem) mi).setSelected(false);
-						}
-					}
-					// will force restart if running
-					raidManager.setRaidGroup(raidGroup.getName(), config.isRaidGroupAdmin(raidGroup.getName()));
-					config.setLastRaidGroupName(raidGroup.getName());
-
-				} else {
-					// will force stop if running
-					raidManager.setRaidGroup(null, false);
-					config.setLastRaidGroupName(null);
-				}
-			});
-
-			if (raidManager.getRaidGroupName() != null && raidManager.getRaidGroupName().equals(raidGroup.getName())) {
-				// currently raiding
-				item.setSelected(true);
-
-			} else if (config.getLastRaidGroupName() != null && raidGroup.getName().equals(config.getLastRaidGroupName())) {
-				// last raid
-				item.setSelected(true);
-
-			} else if (config.getLastRaidGroupName() == null && raidManager.getRaidGroupName() == null
-					&& newGroup != null && newGroup == raidGroup) {
-				// just added
-				item.setSelected(true);
-				item.fire();
-
-			}
-
-			raidGroupsMenu.getItems().add(item);
-		}
-		if (!config.getRaidGroups().isEmpty()) {
-			raidGroupsMenu.getItems().add(new SeparatorMenuItem());
-
-		}
-
-		raidGroupsMenu.getItems().add(raidGroupsSettingsMenu);
-	}
 
 	private void rebuildTimersMenu() {
 		timersMenu.getItems().clear();

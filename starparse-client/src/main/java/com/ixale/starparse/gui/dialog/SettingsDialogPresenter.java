@@ -5,7 +5,6 @@ import com.ixale.starparse.domain.ConfigTimer;
 import com.ixale.starparse.domain.ConfigTimer.Condition;
 import com.ixale.starparse.domain.ConfigTimers;
 import com.ixale.starparse.domain.RaidBoss;
-import com.ixale.starparse.domain.RaidGroup;
 import com.ixale.starparse.domain.ServerName;
 import com.ixale.starparse.gui.Config;
 import com.ixale.starparse.gui.FlashMessage;
@@ -18,9 +17,6 @@ import com.ixale.starparse.gui.popout.TimersCenterPopoutPresenter;
 import com.ixale.starparse.parser.Helpers;
 import com.ixale.starparse.time.TimeUtils;
 import com.ixale.starparse.timer.TimerManager;
-import com.ixale.starparse.ws.RaidGroupClient;
-import com.ixale.starparse.ws.RaidGroupMessage;
-import com.ixale.starparse.ws.RaidGroupMessage.Action;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -96,11 +92,10 @@ public class SettingsDialogPresenter extends BaseDialogPresenter {
 	@FXML
 	private TabPane dialogRoot;
 	@FXML
-	private Tab contentRaidGroups, contentOverlays, contentTimers, contentUpload;
+	private Tab contentOverlays, contentTimers, contentUpload;
 
 	@FXML
 	private TextField logDirectoryField, recentParsedLogsLimitField, recentOpenedLogsLimitField, timeSyncHostField,
-			raidGroupNameField, raidGroupClientPasswordField, raidGroupAdminPasswordField,
 			raidPullSec, raidPullHotkey, raidBreakMin,
 			raidDamageOpacityText, raidHealingOpacityText, raidThreatOpacityText, raidBossOpacityText,
 			raidChallengesOpacityText, timersOpacityText, timersFractions, personalOpacityText, lockOverlaysHotkey,
@@ -113,7 +108,7 @@ public class SettingsDialogPresenter extends BaseDialogPresenter {
 			raidChallengesOpacitySlider, timersOpacitySlider, personalOpacitySlider, timerSoundVolume, timerCountdownVolume;
 
 	@FXML
-	private Button raidGroupJoinButton, raidGroupCreateButton, timersCenterMoveButton, overlaysResetButton,
+	private Button timersCenterMoveButton, overlaysResetButton,
 			timerSaveButton, timerCopyButton, timersImportButton, timerSoundButton, timerCountdownButton;
 
 	@FXML
@@ -121,8 +116,7 @@ public class SettingsDialogPresenter extends BaseDialogPresenter {
 			raidDamageBars, raidHealingBars, raidThreatBars, raidBossBars, raidChallengesBars, timersBars, personalBars, timersCenter, popoutSolid,
 			timerDisplay, timerPlaySound, timersIgnoreRepeated, timersShowSource, timerPlayCountdown;
 
-	@FXML
-	private ListView<RaidGroup> raidGroupList;
+
 
 	@FXML
 	private ColorPicker popoutBackgroundColor, popoutTextColor,
@@ -156,12 +150,11 @@ public class SettingsDialogPresenter extends BaseDialogPresenter {
 	private Config config;
 
 	private final GeneralSettings generalSettings = new GeneralSettings();
-	private final RaidSettings raidSettings = new RaidSettings();
 	private final OverlaysSettings overlaysSettings = new OverlaysSettings();
 	private final TimersSettings timersSettings = new TimersSettings();
 	private final UploadSettings uploadSettings = new UploadSettings();
 	private final BaseSettings[] settings = new BaseSettings[]{
-			generalSettings, raidSettings, overlaysSettings, timersSettings, uploadSettings
+			generalSettings, overlaysSettings, timersSettings, uploadSettings
 	};
 
 	private SettingsUpdatedListener listener;
@@ -172,8 +165,6 @@ public class SettingsDialogPresenter extends BaseDialogPresenter {
 	}
 
 	public interface SettingsUpdatedListener {
-
-		void onRaidGroupsUpdated(final RaidGroup newGroup);
 
 		void onOverlaysSettings(
 				Color backgroundColor,
@@ -331,7 +322,7 @@ public class SettingsDialogPresenter extends BaseDialogPresenter {
 			}
 			s.validateAll();
 		}
-		raidSettings.loadRaidGroups();
+
 
 		dialogRoot.getSelectionModel().select(0);
 
@@ -340,9 +331,7 @@ public class SettingsDialogPresenter extends BaseDialogPresenter {
 		super.show();
 	}
 
-	public void selectRaidGroups() {
-		dialogRoot.getSelectionModel().select(contentRaidGroups);
-	}
+
 
 	public void selectOverlays() {
 		dialogRoot.getSelectionModel().select(contentOverlays);
@@ -396,22 +385,9 @@ public class SettingsDialogPresenter extends BaseDialogPresenter {
 		generalSettings.handleSave(event);
 	}
 
-	public void handleRaidGroupJoin(final ActionEvent event) {
-		raidSettings.handleRaidGroupJoin(event);
-	}
 
-	public void handleRaidGroupCreate(final ActionEvent event) {
-		raidSettings.handleRaidGroupCreate(event);
-	}
 
-	public void handleAnnouncementsSave(final ActionEvent event) {
-		raidSettings.handleSave(event);
-	}
 
-	public void handleAnnouncementsDefaults(@SuppressWarnings("unused") final ActionEvent event) {
-		loadValues(raidSettings.defaults);
-		raidSettings.validateAll();
-	}
 
 	public void handleOverlaysDefaults(@SuppressWarnings("unused") final ActionEvent event) {
 		loadValues(overlaysSettings.defaults);
@@ -719,305 +695,7 @@ public class SettingsDialogPresenter extends BaseDialogPresenter {
 		}
 	}
 
-	private class RaidSettings extends BaseSettings {
 
-		public class RaidGroupCell extends ListCell<RaidGroup> {
-
-			final VBox container = new VBox();
-			final Label label = new Label("...");
-			final Label time = new Label();
-
-			public RaidGroupCell() {
-				super();
-
-				container.getChildren().addAll(label, time);
-
-				label.getStyleClass().add("combat-title");
-				label.setMaxWidth(134);
-				time.getStyleClass().add("combat-time");
-				time.setMaxWidth(134);
-			}
-
-			protected void updateItem(final RaidGroup raidGroup, boolean empty) {
-
-				super.updateItem(raidGroup, empty);
-				setText(null);
-
-				if (empty) {
-					setGraphic(null);
-					return;
-				}
-
-				label.setText(raidGroup.getName());
-				time.setText(raidGroup.getClientPassword()
-						+ (raidGroup.getAdminPassword() != null ? " / " + raidGroup.getAdminPassword() : ""));
-
-				setGraphic(container);
-			}
-		}
-
-		public class RaidGroupAction extends Service<Void> {
-
-			private final RaidGroupMessage.Action action;
-			private final RaidGroup raidGroup;
-
-			final RaidGroupClient client = new RaidGroupClient(config, new RaidGroupClient.ResultHandler() {
-				@Override
-				public void onSuccess(final String message) {
-					Platform.runLater(() -> {
-						setFlash(message, FlashMessage.Type.SUCCESS);
-						RaidGroup newGroup = null;
-
-						switch (action) {
-							case CREATE:
-							case JOIN:
-								// store & reload list
-								config.getRaidGroups().add(raidGroup);
-
-								raidGroupNameField.setText("");
-								raidGroupClientPasswordField.setText("");
-								raidGroupAdminPasswordField.setText("");
-								newGroup = raidGroup;
-								break;
-							case REMOVE:
-								// remove & reload list
-								config.getRaidGroups().remove(raidGroup);
-								break;
-						}
-						loadRaidGroups();
-						raidSettings.enableButtons();
-						raidSettings.fireRaidGroupsUpdated(newGroup);
-					});
-					client.close();
-				}
-
-				@Override
-				public void onError(final String message) {
-					Platform.runLater(() -> {
-						setFlash(message);
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException ignored) {
-						}
-						raidSettings.enableButtons();
-					});
-					client.close();
-				}
-
-				@Override
-				public void onClose(String message) {
-					// ignore
-				}
-			});
-
-			public RaidGroupAction(RaidGroupMessage.Action action) {
-				this.action = action;
-				this.raidGroup = new RaidGroup(raidGroupNameField.getText());
-				this.raidGroup.setClientPassword(raidGroupClientPasswordField.getText());
-				this.raidGroup.setAdminPassword(raidGroupAdminPasswordField.getText());
-				disableButtons();
-			}
-
-			public RaidGroupAction(RaidGroupMessage.Action action, final RaidGroup raidGroup) {
-				this.action = action;
-				this.raidGroup = raidGroup;
-				disableButtons();
-			}
-
-			@Override
-			protected Task<Void> createTask() {
-				return new Task<Void>() {
-					protected Void call() {
-						client.manageRaidGroup(raidGroup, action);
-						return null;
-					}
-				};
-			}
-		}
-
-		@Override
-		public void initialize() {
-
-			// raid groups
-			final Validator<TextField> stringValidator = c -> {
-				if (c == raidGroupAdminPasswordField) {
-					return c.getText() == null || c.getText().isEmpty() || (c.getText().length() >= 5 && c.getText().length() < 20);
-				}
-				return c.getText() != null && !c.getText().isEmpty() && c.getText().length() >= 5 && c.getText().length() < 20;
-			};
-
-			validators.put(raidGroupNameField, stringValidator);
-			validators.put(raidGroupClientPasswordField, stringValidator);
-			validators.put(raidGroupAdminPasswordField, stringValidator);
-
-			// list
-			raidGroupList.setCellFactory(combatListView -> new RaidGroupCell());
-
-			final MenuItem miRemoveClient = new MenuItem("Remove group from your list");
-			miRemoveClient.setOnAction(ae -> {
-				if (raidGroupList.getSelectionModel().getSelectedItems().isEmpty()) {
-					return;
-				}
-				config.getRaidGroups().remove(raidGroupList.getSelectionModel().getSelectedItem());
-				loadRaidGroups();
-				fireRaidGroupsUpdated(null);
-			});
-
-			final MenuItem miRemoveServer = new MenuItem("Remove group from server");
-			miRemoveServer.setOnAction(ae -> {
-				if (raidGroupList.getSelectionModel().getSelectedItems().isEmpty()) {
-					return;
-				}
-				new RaidGroupAction(Action.REMOVE, raidGroupList.getSelectionModel().getSelectedItem()).start();
-			});
-
-			final ContextMenu menu = new ContextMenu(miRemoveClient, miRemoveServer);
-			menu.setOnShowing(arg0 -> {
-				if (raidGroupList.getSelectionModel().getSelectedItems().isEmpty()
-						|| raidGroupList.getSelectionModel().getSelectedItem() == null) {
-					miRemoveClient.setDisable(true);
-					miRemoveServer.setDisable(true);
-					return;
-				}
-
-				miRemoveClient.setText("Remove '" + raidGroupList.getSelectionModel().getSelectedItem().getName()
-						+ "' from your list");
-				miRemoveClient.setDisable(false);
-
-				if (raidGroupList.getSelectionModel().getSelectedItem().getAdminPassword() != null) {
-					miRemoveServer.setDisable(false);
-					miRemoveServer.setText("Remove '" + raidGroupList.getSelectionModel().getSelectedItem().getName()
-							+ "' from the server");
-				}
-			});
-			raidGroupList.setContextMenu(menu);
-
-			defaults.put(raidPullSec, String.valueOf(Config.DEFAULT_RAID_PULL_SECONDS));
-			defaults.put(raidPullHotkey, "");
-			defaults.put(raidBreakMin, String.valueOf(Config.DEFAULT_RAID_BREAK_MINUTES));
-
-			// validators
-			validators.put(raidPullSec, (Validator<TextField>) c -> {
-				if (c.getText() == null || c.getText().isEmpty()) {
-					return false;
-				}
-				try {
-					int x = Integer.parseInt(c.getText());
-					return x >= 5 && x <= 99;
-				} catch (NumberFormatException e) {
-					return false;
-				}
-			});
-			validators.put(raidPullHotkey, hotkeyValidator);
-			validators.put(raidBreakMin, (Validator<TextField>) c -> {
-				if (c.getText() == null || c.getText().isEmpty()) {
-					return false;
-				}
-				try {
-					int x = Integer.parseInt(c.getText());
-					return x >= 1 && x <= 99;
-				} catch (NumberFormatException e) {
-					return false;
-				}
-			});
-		}
-
-		@Override
-		public void loadCurrent() {
-			current.put(raidPullSec, String.valueOf(config.getRaidPullSeconds()));
-			current.put(raidPullHotkey, config.getRaidPullHotkey() == null ? "" : config.getRaidPullHotkey());
-			current.put(raidBreakMin, String.valueOf(config.getRaidBreakMinutes()));
-		}
-
-		private void handleSave(final ActionEvent event) {
-			if (!validate(raidPullHotkey)) {
-				setFlash("Please enter valid keystroke ('control shift X', 'alt 5' etc.)");
-				return;
-			}
-			if (!validate(raidPullSec, raidBreakMin)) {
-				setFlash("Please enter valid number(s)");
-				return;
-			}
-
-			config.setRaidPullSeconds(Integer.parseInt(raidPullSec.getText()));
-			final String oldHotkey = config.getRaidPullHotkey() == null || config.getRaidPullHotkey().isEmpty() ? null : config.getRaidPullHotkey();
-			final String newHotkey = raidPullHotkey.getText() == null || raidPullHotkey.getText().isEmpty() ? null : raidPullHotkey.getText();
-			config.setRaidPullHotkey(newHotkey);
-			config.setRaidBreakMinutes(Integer.parseInt(raidBreakMin.getText()));
-
-			if (listener != null) {
-				listener.onHotkeyUpdated(Config.Hotkey.RAID_PULL, oldHotkey, newHotkey);
-			}
-
-			handleClose(event);
-		}
-
-		private void loadRaidGroups() {
-			raidGroupList.getItems().setAll(config.getRaidGroups());
-		}
-
-		private void handleRaidGroupJoin(@SuppressWarnings("unused") final ActionEvent event) {
-
-			if (!validateRaidGroup()) {
-				return;
-			}
-
-			new RaidGroupAction(Action.JOIN).start();
-		}
-
-		private void handleRaidGroupCreate(@SuppressWarnings("unused") final ActionEvent event) {
-
-			if (!validateRaidGroup()) {
-				return;
-			}
-
-			if (raidGroupAdminPasswordField.getText().isEmpty()) {
-				setFlash("Please choose 'Admin' password");
-				return;
-			}
-
-			new RaidGroupAction(Action.CREATE).start();
-		}
-
-		@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-		private boolean validateRaidGroup() {
-			if (!validate(raidGroupNameField, raidGroupClientPasswordField, raidGroupAdminPasswordField)) {
-				setFlash("Please fix the highlighted fields");
-				return false;
-			}
-			setFlash(null);
-
-			for (final RaidGroup group : config.getRaidGroups()) {
-				if (group.getName().equalsIgnoreCase(raidGroupNameField.getText())) {
-					setFlash("This group is already in your list");
-					return false;
-				}
-			}
-			return true;
-		}
-
-		private void enableButtons() {
-			raidGroupJoinButton.setDisable(false);
-			raidGroupCreateButton.setDisable(false);
-			raidGroupNameField.setDisable(false);
-			raidGroupClientPasswordField.setDisable(false);
-			raidGroupAdminPasswordField.setDisable(false);
-		}
-
-		private void disableButtons() {
-			raidGroupJoinButton.setDisable(true);
-			raidGroupCreateButton.setDisable(true);
-			raidGroupNameField.setDisable(true);
-			raidGroupClientPasswordField.setDisable(true);
-			raidGroupAdminPasswordField.setDisable(true);
-		}
-
-		private void fireRaidGroupsUpdated(final RaidGroup newGroup) {
-			if (listener != null) {
-				listener.onRaidGroupsUpdated(newGroup);
-			}
-		}
-	}
 
 	private class OverlaysSettings extends BaseSettings {
 

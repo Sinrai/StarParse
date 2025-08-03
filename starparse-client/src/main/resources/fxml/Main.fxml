@@ -208,12 +208,6 @@
                 <MenuItem fx:id="timersSettingsMenu" mnemonicParsing="false" onAction="#handleTimersSettings" text="Settings" />
               </items>
             </Menu>
-            <Menu fx:id="raidGroupsMenu" mnemonicParsing="false" text="Raiding">
-              <items>
-                <SeparatorMenuItem mnemonicParsing="false" text="" />
-                <MenuItem fx:id="raidGroupsSettingsMenu" mnemonicParsing="false" onAction="#handleRaidGroupsSettings" text="Settings" />
-              </items>
-            </Menu>
           </menus>
           <GridPane.margin>
             <Insets top="-1.0" />
@@ -224,11 +218,6 @@
             <ToggleButton fx:id="parseButton" focusTraversable="false" onAction="#handleParse" text="Parse">
               <HBox.margin>
                 <Insets right="5.0" />
-              </HBox.margin>
-            </ToggleButton>
-            <ToggleButton fx:id="raidButton" focusTraversable="false" onAction="#handleRaid" selected="false" text="Raid">
-              <HBox.margin>
-                <Insets fx:id="x1" />
               </HBox.margin>
             </ToggleButton>
           </children>

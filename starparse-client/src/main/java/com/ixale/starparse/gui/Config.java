@@ -1,17 +1,15 @@
 package com.ixale.starparse.gui;
 
 import com.ixale.starparse.domain.CombatLog;
-import com.ixale.starparse.domain.ConfigAttacks;
 import com.ixale.starparse.domain.ConfigCharacter;
 import com.ixale.starparse.domain.ConfigPopoutDefault;
 import com.ixale.starparse.domain.ConfigTimers;
-import com.ixale.starparse.domain.RaidGroup;
+import com.ixale.starparse.domain.ConfigAttacks;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
+import java.util.Base64;
 import java.util.TimeZone;
 
 public class Config implements Serializable {
@@ -38,7 +36,7 @@ public class Config implements Serializable {
 	DEFAULT_TIME_SYNC_HOST = "time.nist.gov",
 			DEFAULT_SERVER_HOST = "ixparse.com:8080/starparse",
 			SECURED_SERVER_HOST = "ixparse.com:443/starparse",
-			DEFAULT_LOG_DIRECTORY = System.getProperty("user.home") + "/Documents/Star Wars - The Old Republic/CombatLogs/",
+			DEFAULT_LOG_DIRECTORY = System.getProperty("user.home") + "/.local/share/Steam/steamapps/compatdata/1286830/pfx/drive_c/users/steamuser/Documents/Star Wars - The Old Republic/CombatLogs/",
 			PARSELY_UPLOAD_API = "https://parsely.io/api/upload2";
 
 	public static final int DEFAULT_RECENT_PARSED_LOGS_LIMIT = 5,
@@ -70,9 +68,6 @@ public class Config implements Serializable {
 
 	private ArrayList<ConfigCharacter> characters;
 	private String lastCharacterName;
-
-	private ArrayList<RaidGroup> raidGroups;
-	private String lastRaidGroupName;
 
 	private Boolean timeSyncEnabled;
 	private String timeSyncHost;
@@ -266,13 +261,6 @@ public class Config implements Serializable {
 		this.storeDataOnServerEnabled = storeDataOnServerEnabled;
 	}
 
-	public ArrayList<RaidGroup> getRaidGroups() {
-		if (raidGroups == null) {
-			raidGroups = new ArrayList<>();
-		}
-		return raidGroups;
-	}
-
 	public String getTimeSyncHost() {
 		return timeSyncHost != null ? timeSyncHost : DEFAULT_TIME_SYNC_HOST;
 	}
@@ -298,23 +286,6 @@ public class Config implements Serializable {
 
 	public void setServerHost(String serverHost) {
 		this.serverHost = serverHost;
-	}
-
-	public String getLastRaidGroupName() {
-		return lastRaidGroupName;
-	}
-
-	public boolean isRaidGroupAdmin(final String raidGroupName) {
-		for (RaidGroup group : getRaidGroups()) {
-			if (group.getName() != null && group.getName().equals(raidGroupName)) {
-				return group.getAdminPassword() != null && !group.getAdminPassword().isEmpty();
-			}
-		}
-		return false;
-	}
-
-	public void setLastRaidGroupName(String lastRaidGroupName) {
-		this.lastRaidGroupName = lastRaidGroupName;
 	}
 
 	public Integer getPopoutSnap() {
