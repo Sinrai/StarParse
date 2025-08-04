@@ -68,7 +68,8 @@
 }
 
 #buttons .toggle-button,
-#toolbar .button {
+#toolbar .button,
+#toolbar .toggle-button {
     -fx-border-color: silver;
     -fx-border-width: 0;
     -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, silver 0%, gray 100%);
@@ -76,17 +77,27 @@
     -fx-background-insets: 0;
 }
 
+#toolbar .toggle-button {
+    -fx-min-width: 60px;
+    -fx-pref-width: 60px;
+    -fx-max-width: 60px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+}
+
 #toolbar #darkModeButton {
     -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, gray 0%, #888 100%);
 }
 
 #buttons .toggle-button:hover,
-#toolbar .button:hover {
+#toolbar .button:hover,
+#toolbar .toggle-button:hover {
     /*-fx-base: #395bae;*/
     /*-fx-background-color: white;*/
 }
 
-#buttons .toggle-button:selected {
+#buttons .toggle-button:selected,
+#toolbar .toggle-button:selected {
 }
 
 #buttons .toggle-button-inter:selected {

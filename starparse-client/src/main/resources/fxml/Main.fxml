@@ -213,17 +213,13 @@
             <Insets top="-1.0" />
           </GridPane.margin>
         </MenuBar>
-        <HBox id="buttons" alignment="CENTER" prefHeight="40.0" prefWidth="144.0" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.hgrow="NEVER" GridPane.rowIndex="0" GridPane.valignment="CENTER" GridPane.vgrow="NEVER">
+        <HBox id="toolbar" alignment="CENTER_RIGHT" prefHeight="40.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0">
           <children>
             <ToggleButton fx:id="parseButton" focusTraversable="false" onAction="#handleParse" text="Parse">
               <HBox.margin>
-                <Insets right="5.0" />
+                <Insets right="10.0" />
               </HBox.margin>
             </ToggleButton>
-          </children>
-        </HBox>
-        <HBox id="toolbar" alignment="CENTER_RIGHT" prefHeight="40.0" prefWidth="109.0" GridPane.columnIndex="3" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0">
-          <children>
             <Button id="darkModeButton" fx:id="darkModeButton" onAction="#handleDarkMode" text="D" />
             <Button onAction="#handleAbout" text="?">
               <HBox.margin>
@@ -245,8 +241,7 @@
       <columnConstraints>
         <ColumnConstraints fillWidth="false" hgrow="NEVER" maxWidth="-Infinity" minWidth="150.0" prefWidth="215.0" />
         <ColumnConstraints hgrow="ALWAYS" maxWidth="-1.0" minWidth="220.0" />
-        <ColumnConstraints fillWidth="false" hgrow="NEVER" maxWidth="-Infinity" minWidth="130.0" prefWidth="136.0" />
-        <ColumnConstraints fillWidth="false" hgrow="NEVER" maxWidth="-Infinity" minWidth="130.0" prefWidth="136.0" />
+        <ColumnConstraints fillWidth="false" hgrow="NEVER" maxWidth="-Infinity" minWidth="200.0" prefWidth="200.0" />
       </columnConstraints>
       <rowConstraints>
         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />

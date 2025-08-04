@@ -22,19 +22,30 @@
 }
 
 #buttons .toggle-button,
-#toolbar .button {
+#toolbar .button,
+#toolbar .toggle-button {
     -fx-padding: .15em .8em .25em .8em;
+}
+
+#toolbar .toggle-button {
+    -fx-min-width: 60px;
+    -fx-pref-width: 60px;
+    -fx-max-width: 60px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
 }
 
 #toolbar #darkModeButton {
 }
 
 #buttons .toggle-button:hover,
-#toolbar .button:hover {
+#toolbar .button:hover,
+#toolbar .toggle-button:hover {
     -fx-cursor: hand;
 }
 
-#buttons .toggle-button:selected {
+#buttons .toggle-button:selected,
+#toolbar .toggle-button:selected {
     -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, limegreen 0%, green 100%);
     -fx-text-fill: -fx-light-text-color;
 }

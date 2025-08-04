@@ -66,9 +66,18 @@
 }
 
 #buttons .toggle-button,
-#toolbar .button {
+#toolbar .button,
+#toolbar .toggle-button {
     -fx-border-width: 0;
     -fx-background-insets: 0;
+}
+
+#toolbar .toggle-button {
+    -fx-min-width: 60px;
+    -fx-pref-width: 60px;
+    -fx-max-width: 60px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
 }
 
 #toolbar #darkModeButton {
@@ -77,10 +86,12 @@
 
 #buttons .toggle-button:hover,
 #toolbar .button:hover,
+#toolbar .toggle-button:hover,
 #toolbar #darkModeButton:hover {
 }
 
-#buttons .toggle-button:selected {
+#buttons .toggle-button:selected,
+#toolbar .toggle-button:selected {
 }
 
 #buttons .toggle-button-inter:selected {
