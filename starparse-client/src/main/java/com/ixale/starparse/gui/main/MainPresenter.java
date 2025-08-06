@@ -681,9 +681,7 @@ public class MainPresenter implements Initializable {
 									eventService.getAbsorptionStats(lastCombat, null, playerName),
 									eventService.getCombatChallengeStats(lastCombat, null, playerName),
 									context.getCombatEvents(lastCombat.getCombatId(), playerName),
-									currentCombatLog.getCharacterName().equals(playerName)
-											? playerName
-											: Format.formatFakePlayerName(playerName)
+									playerName
 							));
 
 						} catch (Exception e) {
