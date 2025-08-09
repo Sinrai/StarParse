@@ -56,8 +56,16 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 			+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 
 	SQL_INSERT_STATS = "INSERT INTO combat_stats"
-			+ " (combat_id, player_name, time_from, time_to, event_id_from, event_id_to, discipline, actions, apm, damage, dps, heal, hps, effective_heal, ehps, ehps_percent, effective_heal_taken, damage_taken, dtps, absorbed, aps, heal_taken, hps_taken, ehps_taken, threat, threat_positive, tps)"
-			+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			+ " (event_id_from, event_id_to, time_from, time_to"
+			+ ", actions, apm, damage, dps, heal, hps, effective_heal, ehps, ehps_percent"
+			+ ", damage_taken, dtps, absorbed, aps"
+			+ ", heal_taken, hps_taken, ehps_taken, effective_heal_taken"
+			+ ", threat, threat_positive, tps, discipline, combat_id, player_name)"
+			+ " VALUES (?, ?, ?, ?, " +
+			"?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+			"?, ?, ?, ?, " +
+			"?, ?, ?, ?, " +
+			"?, ?, ?, ?, ?, ?)",
 
 	SQL_UPDATE = "UPDATE combats SET"
 			+ " log_id = ?, event_id_from = ?, event_id_to = ?, time_from = ?, time_to = ?"
@@ -103,55 +111,55 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 
 			+ "SELECT event_id, timestamp, (event_id + 1) AS next_id"
 			+ ", 0 AS duration"
-			+ ", (CASE WHEN source_name = %playerName AND target_name != %playerName AND effect_guid = " + EntityGuid.Damage + " THEN event_value ELSE 0 END) AS damage"
-			+ ", (CASE WHEN source_name = %playerName AND target_name != %playerName AND effect_guid = " + EntityGuid.Damage + " THEN event_value ELSE 0 END) AS damage_sub"
-			+ ", (CASE WHEN source_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN event_value ELSE 0 END) AS heal"
-			+ ", (CASE WHEN source_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN event_value ELSE 0 END) AS heal_sub"
+			+ ", (CASE WHEN source_name = %playerName AND target_name != %playerName AND effect_guid = " + EntityGuid.Damage + " THEN value ELSE 0 END) AS damage"
+			+ ", (CASE WHEN source_name = %playerName AND target_name != %playerName AND effect_guid = " + EntityGuid.Damage + " THEN value ELSE 0 END) AS damage_sub"
+			+ ", (CASE WHEN source_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN value ELSE 0 END) AS heal"
+			+ ", (CASE WHEN source_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN value ELSE 0 END) AS heal_sub"
 			+ ", (CASE WHEN source_name = %playerName AND effect_guid = " + EntityGuid.Heal + " AND effective_heal IS NOT NULL THEN effective_heal ELSE 0 END) AS effective_heal"
 			+ ", (CASE WHEN source_name = %playerName AND effect_guid = " + EntityGuid.Heal + " AND effective_heal IS NOT NULL THEN effective_heal ELSE 0 END) AS effective_heal_sub"
-			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " THEN event_value ELSE 0 END) AS damage_taken"
-			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " THEN event_value ELSE 0 END) AS damage_taken_sub"
+			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " THEN value ELSE 0 END) AS damage_taken"
+			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " THEN value ELSE 0 END) AS damage_taken_sub"
 			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " AND absorbed IS NOT NULL THEN absorbed ELSE 0 END) AS absorbed"
 			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " AND absorbed IS NOT NULL THEN absorbed ELSE 0 END) AS absorbed_sub"
-			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN event_value ELSE 0 END) AS heal_taken"
-			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN event_value ELSE 0 END) AS heal_taken_sub"
+			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN value ELSE 0 END) AS heal_taken"
+			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN value ELSE 0 END) AS heal_taken_sub"
 			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " AND effective_heal IS NOT NULL THEN effective_heal ELSE 0 END) AS effective_heal_taken"
 			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " AND effective_heal IS NOT NULL THEN effective_heal ELSE 0 END) AS effective_heal_taken_sub"
 			+ ", (CASE WHEN target_name = %playerName AND source_name != %playerName AND effect_guid = " + EntityGuid.Heal + " AND effective_heal IS NULL THEN 0 ELSE (0"
-			+ "+ (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " THEN event_value ELSE 0 END)"
-			+ "+ (CASE WHEN target_name = %playerName AND action_guid = " + EntityGuid.Spend + " AND effect_guid = " + EntityGuid.HealthPoint + " THEN event_value ELSE 0 END)"
+			+ "+ (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " THEN value ELSE 0 END)"
+			+ "+ (CASE WHEN target_name = %playerName AND action_guid = " + EntityGuid.Spend + " AND effect_guid = " + EntityGuid.HealthPoint + " THEN value ELSE 0 END)"
 			+ "- (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " AND effective_heal IS NOT NULL THEN effective_heal ELSE 0 END)"
 			+ "- (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " AND absorbed IS NOT NULL THEN absorbed ELSE 0 END)"
-			+ "- (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " AND ability_guid IN (" + EntityGuid.Enure + ", " + EntityGuid.EnduringPain + ") THEN event_value ELSE 0 END)"
+			+ "- (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " AND ability_guid IN (" + EntityGuid.Enure + ", " + EntityGuid.EnduringPain + ") THEN value ELSE 0 END)"
 			+ ") END) as health_sub"
 			+ " FROM events s "
 			+ " WHERE %event_from"
 			+ " UNION ALL"
 			+ " SELECT e.event_id, e.timestamp, (e.event_id + 1) AS next_id"
 			+ ", DATEDIFF(SECOND, %time_from, e.timestamp) AS duration"
-			+ ", (CASE WHEN source_name = %playerName AND target_name != %playerName AND effect_guid = " + EntityGuid.Damage + " THEN event_value ELSE 0 END) AS damage"
-			+ ", (CASE WHEN source_name = %playerName AND target_name != %playerName AND effect_guid = " + EntityGuid.Damage + " THEN event_value ELSE 0 END) + s.damage_sub AS damage_sub"
-			+ ", (CASE WHEN source_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN event_value ELSE 0 END) AS heal"
-			+ ", (CASE WHEN source_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN event_value ELSE 0 END) + s.heal_sub AS heal_sub"
+			+ ", (CASE WHEN source_name = %playerName AND target_name != %playerName AND effect_guid = " + EntityGuid.Damage + " THEN value ELSE 0 END) AS damage"
+			+ ", (CASE WHEN source_name = %playerName AND target_name != %playerName AND effect_guid = " + EntityGuid.Damage + " THEN value ELSE 0 END) + s.damage_sub AS damage_sub"
+			+ ", (CASE WHEN source_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN value ELSE 0 END) AS heal"
+			+ ", (CASE WHEN source_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN value ELSE 0 END) + s.heal_sub AS heal_sub"
 			+ ", (CASE WHEN source_name = %playerName AND effect_guid = " + EntityGuid.Heal + " AND e.effective_heal  IS NOT NULL THEN e.effective_heal ELSE 0 END) AS effective_heal"
 			+ ", (CASE WHEN source_name = %playerName AND effect_guid = " + EntityGuid.Heal + " AND e.effective_heal  IS NOT NULL THEN e.effective_heal ELSE 0 END) + s.effective_heal_sub AS effective_heal_sub"
-			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " THEN event_value ELSE 0 END) AS damage_taken"
-			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " THEN event_value ELSE 0 END) + s.damage_taken_sub AS damage_taken_sub"
+			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " THEN value ELSE 0 END) AS damage_taken"
+			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " THEN value ELSE 0 END) + s.damage_taken_sub AS damage_taken_sub"
 			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " AND e.absorbed IS NOT NULL THEN e.absorbed ELSE 0 END) AS absorbed"
 			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " AND e.absorbed IS NOT NULL THEN e.absorbed ELSE 0 END) + s.absorbed_sub AS absorbed_sub"
-			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN event_value ELSE 0 END) AS heal_taken"
-			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN event_value ELSE 0 END) + s.heal_taken_sub AS heal_taken_sub"
+			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN value ELSE 0 END) AS heal_taken"
+			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " THEN value ELSE 0 END) + s.heal_taken_sub AS heal_taken_sub"
 			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " AND e.effective_heal IS NOT NULL THEN e.effective_heal ELSE 0 END) AS effective_heal_taken"
 			+ ", (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " AND e.effective_heal IS NOT NULL THEN e.effective_heal ELSE 0 END) + s.effective_heal_taken_sub AS effective_heal_taken_sub"
 			+ ", (CASE WHEN target_name = %playerName AND source_name != %playerName AND effect_guid = " + EntityGuid.Heal + " "
 			// zero effective heal means we are "probably" full ... or the caster is dead ;-)
 			+ "AND e.effective_heal IS NULL THEN 0 ELSE (s.health_sub"
 			// non-zero effective heal OR damage, adjust the balance accordingly
-			+ "+ (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " THEN event_value ELSE 0 END)"
-			+ "+ (CASE WHEN target_name = %playerName AND action_guid = " + EntityGuid.Spend + " AND effect_guid = " + EntityGuid.HealthPoint + " THEN event_value ELSE 0 END)"
+			+ "+ (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " THEN value ELSE 0 END)"
+			+ "+ (CASE WHEN target_name = %playerName AND action_guid = " + EntityGuid.Spend + " AND effect_guid = " + EntityGuid.HealthPoint + " THEN value ELSE 0 END)"
 			+ "- (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " AND e.effective_heal IS NOT NULL THEN e.effective_heal ELSE 0 END)"
 			+ "- (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Damage + " AND e.absorbed IS NOT NULL THEN e.absorbed ELSE 0 END)"
-			+ "- (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " AND ability_guid IN (" + EntityGuid.Enure + ", " + EntityGuid.EnduringPain + ") THEN e.event_value ELSE 0 END)"
+			+ "- (CASE WHEN target_name = %playerName AND effect_guid = " + EntityGuid.Heal + " AND ability_guid IN (" + EntityGuid.Enure + ", " + EntityGuid.EnduringPain + ") THEN e.value ELSE 0 END)"
 			+ ") END) as health_sub"
 			+ " FROM subs s"
 			+ " INNER JOIN events e ON (e.event_id = s.next_id)"
@@ -197,16 +205,16 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 			+ "SELECT LEAST(36000000, GREATEST(1000, DATEDIFF('MILLISECOND', :timeFrom, CASE WHEN :timeTo IS NOT NULL THEN :timeTo ELSE MAX(timestamp) END))) AS duration"
 			+ ", MAX(timestamp) time_to"
 			+ ", SUM(CASE WHEN source_name = :playerName AND effect_guid = " + EntityGuid.AbilityActivate + " THEN 1 ELSE 0 END) AS actions"
-			+ ", SUM(CASE WHEN source_name = :playerName AND NOT (target_name = :playerName) AND effect_guid = " + EntityGuid.Damage + " THEN event_value ELSE 0 END) AS damage"
-			+ ", SUM(CASE WHEN source_name = :playerName AND effect_guid = " + EntityGuid.Heal + " THEN event_value ELSE 0 END) AS heal"
+			+ ", SUM(CASE WHEN source_name = :playerName AND NOT (target_name = :playerName) AND effect_guid = " + EntityGuid.Damage + " THEN value ELSE 0 END) AS damage"
+			+ ", SUM(CASE WHEN source_name = :playerName AND effect_guid = " + EntityGuid.Heal + " THEN value ELSE 0 END) AS heal"
 			+ ", SUM(CASE WHEN source_name = :playerName AND effect_guid = " + EntityGuid.Heal + " THEN effective_heal ELSE 0 END) AS effective_heal"
 
 			+ ", SUM(CASE WHEN source_name = :playerName THEN effective_threat ELSE 0 END) AS threat"
 			+ ", SUM(CASE WHEN source_name = :playerName AND threat > 0 THEN threat ELSE 0 END) AS threat_positive"
 
-			+ ", SUM(CASE WHEN target_name = :playerName AND effect_guid = " + EntityGuid.Damage + " THEN event_value ELSE 0 END) AS damage_taken"
+			+ ", SUM(CASE WHEN target_name = :playerName AND effect_guid = " + EntityGuid.Damage + " THEN value ELSE 0 END) AS damage_taken"
 			+ ", SUM(CASE WHEN target_name = :playerName AND effect_guid = " + EntityGuid.Damage + " AND absorbed IS NOT NULL THEN absorbed ELSE 0 END) AS absorbed"
-			+ ", SUM(CASE WHEN target_name = :playerName AND effect_guid = " + EntityGuid.Heal + " THEN event_value ELSE 0 END) AS heal_taken"
+			+ ", SUM(CASE WHEN target_name = :playerName AND effect_guid = " + EntityGuid.Heal + " THEN value ELSE 0 END) AS heal_taken"
 			+ ", SUM(CASE WHEN target_name = :playerName AND effect_guid = " + EntityGuid.Heal + " THEN effective_heal ELSE 0 END) AS effective_heal_taken"
 			+ " FROM EVENTS e"
 			+ " WHERE (e.event_id BETWEEN :eventIdFrom AND :eventIdTo) AND (:playerName IN (source_name, target_name) OR event_id = :eventIdTo)"
@@ -226,19 +234,19 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 			+ ", ROUND(absorbed * 1000.0 / duration) AS aps"
 			+ " FROM ("
 			+ "SELECT GREATEST(1000, DATEDIFF('MILLISECOND', :timeFrom, CASE WHEN :timeTo IS NOT NULL THEN :timeTo ELSE MAX(e.timestamp) END)) AS duration"
-			+ ", SUM(CASE WHEN e.damage_guid = " + EntityGuid.Internal + " THEN e.event_value ELSE 0 END) AS internal"
-			+ ", SUM(CASE WHEN e.damage_guid = " + EntityGuid.Elemental + " THEN e.event_value ELSE 0 END) AS elemental"
-			+ ", SUM(CASE WHEN e.damage_guid = " + EntityGuid.Energy + " THEN e.event_value ELSE 0 END) AS energy"
-			+ ", SUM(CASE WHEN e.damage_guid = " + EntityGuid.Kinetic + " THEN e.event_value ELSE 0 END) AS kinetic"
+			+ ", SUM(CASE WHEN e.damage_guid = " + EntityGuid.Internal + " THEN e.value ELSE 0 END) AS internal"
+			+ ", SUM(CASE WHEN e.damage_guid = " + EntityGuid.Elemental + " THEN e.value ELSE 0 END) AS elemental"
+			+ ", SUM(CASE WHEN e.damage_guid = " + EntityGuid.Energy + " THEN e.value ELSE 0 END) AS energy"
+			+ ", SUM(CASE WHEN e.damage_guid = " + EntityGuid.Kinetic + " THEN e.value ELSE 0 END) AS kinetic"
 
-			+ ", SUM(CASE WHEN e.mitigation_name IS NOT NULL AND e.mitigation_guid != " + EntityGuid.Immune + " AND e.event_value > 0 THEN 1 ELSE 0 END) AS ticks_shield"
-			+ ", SUM(CASE WHEN e.mitigation_name IS NOT NULL AND e.mitigation_guid != " + EntityGuid.Immune + " AND e.event_value = 0 THEN 1 ELSE 0 END) AS ticks_miss"
+			+ ", SUM(CASE WHEN e.mitigation_name IS NOT NULL AND e.mitigation_guid != " + EntityGuid.Immune + " AND e.value > 0 THEN 1 ELSE 0 END) AS ticks_shield"
+			+ ", SUM(CASE WHEN e.mitigation_name IS NOT NULL AND e.mitigation_guid != " + EntityGuid.Immune + " AND e.value = 0 THEN 1 ELSE 0 END) AS ticks_miss"
 			+ ", SUM(CASE WHEN e.mitigation_name IS NULL OR e.mitigation_guid != " + EntityGuid.Immune + " THEN 1 ELSE 0 END) AS ticks"
 
 			+ ", SUM(CASE WHEN e.absorbed IS NOT NULL THEN e.absorbed ELSE 0 END) AS absorbed"
 			+ ", SUM(CASE WHEN e.absorbed IS NOT NULL AND (ae.source_name = :playerName OR ae.source_type IS NULL) THEN e.absorbed ELSE 0 END) AS absorbed_self"
 
-			+ ", SUM(e.event_value) damage"
+			+ ", SUM(e.value) damage"
 
 			+ " FROM events e"
 			+ " LEFT JOIN absorptions a ON (a.event_id = e.event_id)"
@@ -271,16 +279,16 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 			+ " GROUP BY target_type, target_name, target_guid, target_instance",
 
 	SQL_GET_DAMATE_DEALT_SUMS =
-			"%pivots_cols, SUM(CASE WHEN effect_guid = " + EntityGuid.AbilityActivate + " THEN 1 ELSE 0 END) actions"
+			"SUM(CASE WHEN effect_guid = " + EntityGuid.AbilityActivate + " THEN 1 ELSE 0 END) actions"
 					+ ", SUM(CASE WHEN effect_guid = " + EntityGuid.Damage + " THEN 1 ELSE 0 END) ticks"
 					+ ", SUM(CASE WHEN NOT is_crit THEN 1 ELSE 0 END) ticks_normal"
 					+ ", SUM(CASE WHEN is_crit THEN 1 ELSE 0 END) ticks_crit"
 					+ ", SUM(CASE WHEN mitigation_name IS NOT NULL AND mitigation_guid != " + EntityGuid.Immune + " THEN 1 ELSE 0 END) ticks_miss"
 					+ ", SUM(CASE WHEN mitigation_name IS NOT NULL AND mitigation_guid = " + EntityGuid.Immune + " THEN 1 ELSE 0 END) ticks_immune"
 
-					+ ", SUM(CASE WHEN NOT is_crit THEN event_value ELSE 0 END) total_normal"
-					+ ", SUM(CASE WHEN is_crit THEN event_value ELSE 0 END) total_crit"
-					+ ", MAX(event_value) max, SUM(event_value) total"
+					+ ", SUM(CASE WHEN NOT is_crit THEN value ELSE 0 END) total_normal"
+					+ ", SUM(CASE WHEN is_crit THEN value ELSE 0 END) total_crit"
+					+ ", MAX(value) max, SUM(value) total"
 					+ ", GROUP_CONCAT(DISTINCT damage_name) damage_type"
 					+ ", MIN(timestamp) sub_time_from, MAX(timestamp) sub_time_to"
 					+ " FROM events e"
@@ -289,53 +297,35 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 					+ " AND ((effect_guid = " + EntityGuid.Damage + " AND target_name != :playerName) OR (effect_guid = " + EntityGuid.AbilityActivate + "))"
 					+ " AND ability_guid IN (SELECT ability_guid FROM events WHERE effect_guid = " + EntityGuid.Damage + " AND source_name = :playerName AND event_id BETWEEN :eventIdFrom AND :eventIdTo)",
 
-	SQL_GET_DAMAGE_DEALT_TOTALS = "WITH damage_stats AS ("
-			+ " SELECT %pivots_cols"
-			+ ", SUM(CASE WHEN effect_guid = " + EntityGuid.AbilityActivate + " THEN 1 ELSE 0 END) actions"
-			+ ", SUM(CASE WHEN effect_guid = " + EntityGuid.Damage + " THEN 1 ELSE 0 END) ticks"
-			+ ", SUM(CASE WHEN NOT is_crit THEN 1 ELSE 0 END) ticks_normal"
-			+ ", SUM(CASE WHEN is_crit THEN 1 ELSE 0 END) ticks_crit"
-			+ ", SUM(CASE WHEN mitigation_name IS NOT NULL AND mitigation_guid != " + EntityGuid.Immune + " THEN 1 ELSE 0 END) ticks_miss"
-			+ ", SUM(CASE WHEN mitigation_name IS NOT NULL AND mitigation_guid = " + EntityGuid.Immune + " THEN 1 ELSE 0 END) ticks_immune"
-			+ ", SUM(CASE WHEN NOT is_crit THEN event_value ELSE 0 END) total_normal"
-			+ ", SUM(CASE WHEN is_crit THEN event_value ELSE 0 END) total_crit"
-			+ ", MAX(event_value) max, SUM(event_value) total"
-			+ ", GROUP_CONCAT(DISTINCT damage_name) damage_type"
-			+ ", MIN(timestamp) sub_time_from, MAX(timestamp) sub_time_to"
-			+ " FROM events e"
-			+ " WHERE (event_id BETWEEN :behindEventIdFrom AND :eventIdTo AND timestamp >= :behindTimeFrom)"
-			+ " AND source_name = :playerName"
-			+ " AND ((effect_guid = " + EntityGuid.Damage + " AND target_name != :playerName) OR (effect_guid = " + EntityGuid.AbilityActivate + "))"
-			+ " AND ability_guid IN (SELECT ability_guid FROM events WHERE effect_guid = " + EntityGuid.Damage + " AND source_name = :playerName AND event_id BETWEEN :eventIdFrom AND :eventIdTo)"
-			+ " %pivots_where"
-			+ " GROUP BY %pivots_group"
-			+ "), totals AS ("
-			+ " SELECT SUM(CASE WHEN effect_guid = " + EntityGuid.Damage + " AND source_name = :playerName AND target_name != :playerName THEN event_value ELSE 0 END) total"
-			+ ", MAX(timestamp) timestamp"
-			+ " FROM events e"
-			+ " WHERE e.event_id BETWEEN :eventIdFrom AND :eventIdTo"
-			+ "), dots AS ("
-			+ SQL_GET_DOT_NAMES
-			+ "), targets AS ("
-			+ SQL_GET_TARGET_NAMES
-			+ ")"
-			+ " SELECT a.target_name, a.target_instance, a.ability_name, a.ability_guid"
-			+ ", a.actions, a.ticks, a.ticks_normal, a.ticks_crit, a.ticks_miss, a.ticks_immune"
-			+ ", a.total_normal, a.total_crit, a.max, a.total, a.damage_type"
-			+ ", a.sub_time_from, a.sub_time_to"
-			+ ", (CASE WHEN (a.ticks_normal - a.ticks_miss - a.ticks_immune) > 0 THEN ROUND(a.total_normal * 1.0 / (a.ticks_normal - a.ticks_miss - a.ticks_immune)) ELSE 0 END) avg_normal"
-			+ ", (CASE WHEN (a.ticks - a.ticks_miss - a.ticks_immune) > 0 THEN ROUND(a.total * 1.0 / (a.ticks - a.ticks_miss - a.ticks_immune)) ELSE 0 END) avg_hit"
-			+ ", (CASE WHEN a.ticks_crit > 0 THEN ROUND(a.total_crit * 1.0 / a.ticks_crit) ELSE 0 END) avg_crit"
-			+ ", (CASE WHEN a.ticks > 0 THEN ROUND(a.ticks_crit * 100.0 / a.ticks, 2) ELSE 0 END) AS pct_crit"
-			+ ", (CASE WHEN a.ticks > 0 THEN ROUND(a.ticks_miss * 100.0 / a.ticks, 2) ELSE 0 END) AS pct_miss"
+	SQL_GET_DAMAGE_DEALT_TOTALS = "SELECT a.*"
+			+ ", (CASE WHEN (ticks_normal - ticks_miss - ticks_immune) > 0 THEN ROUND(a.total_normal * 1.0 / (ticks_normal - ticks_miss - ticks_immune)) ELSE 0 END) avg_normal"
+			+ ", (CASE WHEN (ticks - ticks_miss - ticks_immune) > 0 THEN ROUND(a.total * 1.0 / (ticks - ticks_miss - ticks_immune)) ELSE 0 END) avg_hit"
+			+ ", (CASE WHEN ticks_crit > 0 THEN ROUND(total_crit * 1.0 / ticks_crit) ELSE 0 END) avg_crit"
+			+ ", (CASE WHEN ticks > 0 THEN ROUND(ticks_crit * 100.0 / ticks, 2) ELSE 0 END) AS pct_crit"
+			+ ", (CASE WHEN ticks > 0 THEN ROUND(ticks_miss * 100.0 / ticks, 2) ELSE 0 END) AS pct_miss"
 			+ ", (CASE WHEN t.total > 0 THEN ROUND(a.total * 100.0 / t.total, 1) ELSE 0 END) AS pct_total"
 			+ ", ROUND(a.total * 1000.0 / GREATEST(1000, DATEDIFF('MILLISECOND', :timeFrom, CASE WHEN :timeTo IS NOT NULL THEN :timeTo ELSE t.timestamp END))) dps"
 			+ ", dots.ability_name AS dot_name, dots.actions AS dot_actions, dots.ability_guid AS dot_guid"
 			+ ", tt.target_time_from, tt.target_time_to, a.sub_time_from, a.sub_time_to"
-			+ " FROM damage_stats a"
-			+ " INNER JOIN totals t ON (1=1)"
-			+ " LEFT JOIN dots ON (dots.effect_guid = %join_ability_guid AND dots.ability_name != %join_ability_name)"
-			+ " LEFT JOIN targets tt ON (tt.target_name = a.target_name AND tt.target_instance = a.target_instance)"
+			+ " FROM ("
+			+ " SELECT %pivots_cols, " // ability_name, ability_guid
+			+ SQL_GET_DAMATE_DEALT_SUMS
+			+ " %pivots_where" // target_name != :playerName
+			+ " GROUP BY %pivots_group" // ability_name, ability_guid
+			+ " ) a"
+			+ " INNER JOIN ("
+			+ " SELECT SUM(CASE WHEN effect_guid = " + EntityGuid.Damage + " AND source_name = :playerName AND target_name != :playerName THEN value ELSE 0 END) total, MAX(timestamp) timestamp"
+			+ " FROM events e"
+			+ " WHERE e.event_id BETWEEN :eventIdFrom AND :eventIdTo"
+			+ ") t"
+			// dot names and action counts
+			+ " LEFT JOIN ("
+			+ SQL_GET_DOT_NAMES
+			+ ") dots ON (dots.effect_guid = a.ability_guid AND dots.ability_name != a.ability_name)"
+			// targets
+			+ "LEFT JOIN ("
+			+ SQL_GET_TARGET_NAMES
+			+ " ) tt ON (tt.target_name = a.target_name AND tt.target_instance = a.target_instance)"
 			+ " ORDER BY a.total DESC",
 
 	SQL_GET_DAMAGE_DEALT_SIMPLE = "SELECT a.*"
@@ -354,7 +344,7 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 			+ ") t",
 
 	SQL_GET_HEALING_DONE_SUMS =
-			"%pivots_cols, SUM(CASE WHEN effect_guid = " + EntityGuid.AbilityActivate + " THEN 1 ELSE 0 END) actions"
+			", SUM(CASE WHEN effect_guid = " + EntityGuid.AbilityActivate + " THEN 1 ELSE 0 END) actions"
 					+ ", SUM(CASE WHEN effect_guid = " + EntityGuid.Heal + " OR absorbed > 0 THEN 1 ELSE 0 END) ticks"
 					+ ", SUM(ticks_normal) ticks_normal"
 					+ ", SUM(ticks_crit) ticks_crit"
@@ -366,14 +356,14 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 					+ ", SUM(absorbed) absorbed"
 					+ ", MIN(timestamp) sub_time_from, MAX(timestamp) sub_time_to"
 					+ " FROM ("
-					+ "SELECT %pivots_cols, e.effect_guid"
+					+ "SELECT e.target_name, e.target_instance, e.ability_name, e.ability_guid, e.effect_guid"
 					+ ", e.event_id"
 					+ ", (CASE WHEN NOT is_crit THEN 1 ELSE 0 END) ticks_normal"
 					+ ", (CASE WHEN is_crit THEN 1 ELSE 0 END) ticks_crit"
-					+ ", (CASE WHEN NOT is_crit THEN event_value ELSE 0 END) total_normal"
-					+ ", (CASE WHEN is_crit THEN event_value ELSE 0 END) total_crit"
+					+ ", (CASE WHEN NOT is_crit THEN value ELSE 0 END) total_normal"
+					+ ", (CASE WHEN is_crit THEN value ELSE 0 END) total_crit"
 					+ ", (CASE WHEN effective_heal IS NOT NULL THEN effective_heal ELSE 0 END) total_effective"
-					+ ", (event_value) total"
+					+ ", (value) total"
 					+ ", 0 absorbed"
 					+ ", e.timestamp"
 					+ " FROM events e"
@@ -382,7 +372,7 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 					+ " AND effect_guid IN (" + EntityGuid.Heal + ", " + EntityGuid.AbilityActivate + ")"
 					+ " AND ability_guid IN (SELECT ability_guid FROM events WHERE effect_guid = " + EntityGuid.Heal + " AND source_name = :playerName AND event_id BETWEEN :eventIdFrom AND :eventIdTo)"
 					+ " UNION ALL"
-					+ " SELECT %pivots_cols, e.effect_guid"
+					+ " SELECT e.target_name, e.target_instance, e.ability_name, e.ability_guid, e.effect_guid"
 					+ ", e.event_id"
 					+ ", 0 ticks_normal"
 					+ ", 0 ticks_crit"
@@ -399,57 +389,27 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 					+ " WHERE ea.event_id BETWEEN :eventIdFrom AND :eventIdTo"
 					+ " AND e.source_name = :playerName) e",
 
-	SQL_GET_HEALING_DONE_TOTALS = "WITH healing_stats AS ("
-			+ " SELECT %pivots_cols"
-			+ ", SUM(CASE WHEN effect_guid = " + EntityGuid.AbilityActivate + " THEN 1 ELSE 0 END) actions"
-			+ ", SUM(CASE WHEN effect_guid = " + EntityGuid.Heal + " OR absorbed > 0 THEN 1 ELSE 0 END) ticks"
-			+ ", SUM(ticks_normal) ticks_normal"
-			+ ", SUM(ticks_crit) ticks_crit"
-			+ ", SUM(total_normal) total_normal"
-			+ ", SUM(total_crit) total_crit"
-			+ ", SUM(total_effective) total_effective"
-			+ ", GREATEST(MAX(total), MAX(absorbed)) max"
-			+ ", SUM(total) total"
-			+ ", SUM(absorbed) absorbed"
-			+ ", MIN(timestamp) sub_time_from, MAX(timestamp) sub_time_to"
+	SQL_GET_HEALING_DONE_TOTALS = "SELECT a.*"
+			+ ", (CASE WHEN ticks > 0 THEN ROUND(a.total * 1.0 / ticks) ELSE 0 END) avg_normal"
+			+ ", (CASE WHEN ticks_crit > 0 THEN ROUND(total_crit * 1.0 / ticks_crit) ELSE 0 END) avg_crit"
+			+ ", (CASE WHEN ticks > 0 THEN ROUND(ticks_crit * 100.0 / ticks, 2) ELSE 0 END) AS pct_crit"
+			+ ", (CASE WHEN a.total > 0 THEN ROUND(a.total_effective * 100.0 / a.total, 1) ELSE 0 END) AS pct_effective"
+			+ ", (CASE WHEN t.total_effective + t.total_absorbed > 0 THEN ROUND((a.total_effective + a.absorbed) * 100.0 / (t.total_effective + t.total_absorbed), 1) ELSE 0 END) AS pct_total"
+			+ ", ROUND(a.total * 1000.0 / GREATEST(1000, DATEDIFF('MILLISECOND', :timeFrom, CASE WHEN :timeTo IS NOT NULL THEN :timeTo ELSE t.timestamp END))) hps"
+			+ ", ROUND(a.total_effective * 1000.0 / GREATEST(1000, DATEDIFF('MILLISECOND', :timeFrom, CASE WHEN :timeTo IS NOT NULL THEN :timeTo ELSE t.timestamp END))) ehps"
+			+ ", ROUND(a.absorbed * 1000.0 / GREATEST(1000, DATEDIFF('MILLISECOND', :timeFrom, CASE WHEN :timeTo IS NOT NULL THEN :timeTo ELSE t.timestamp END))) aps"
+			+ ", dots.ability_name AS dot_name, dots.actions AS dot_actions"
+			+ ", tt.target_time_from, tt.target_time_to, a.sub_time_from, a.sub_time_to"
 			+ " FROM ("
-			+ "SELECT %pivots_cols, e.effect_guid"
-			+ ", e.event_id"
-			+ ", (CASE WHEN NOT is_crit THEN 1 ELSE 0 END) ticks_normal"
-			+ ", (CASE WHEN is_crit THEN 1 ELSE 0 END) ticks_crit"
-			+ ", (CASE WHEN NOT is_crit THEN event_value ELSE 0 END) total_normal"
-			+ ", (CASE WHEN is_crit THEN event_value ELSE 0 END) total_crit"
-			+ ", (CASE WHEN effective_heal IS NOT NULL THEN effective_heal ELSE 0 END) total_effective"
-			+ ", (event_value) total"
-			+ ", 0 absorbed"
-			+ ", e.timestamp"
-			+ " FROM events e"
-			+ " WHERE event_id BETWEEN :eventIdFrom AND :eventIdTo"
-			+ " AND source_name = :playerName"
-			+ " AND effect_guid IN (" + EntityGuid.Heal + ", " + EntityGuid.AbilityActivate + ")"
-			+ " AND ability_guid IN (SELECT ability_guid FROM events WHERE effect_guid = " + EntityGuid.Heal + " AND source_name = :playerName AND event_id BETWEEN :eventIdFrom AND :eventIdTo)"
-			+ " UNION ALL"
-			+ " SELECT %pivots_cols, e.effect_guid"
-			+ ", e.event_id"
-			+ ", 0 ticks_normal"
-			+ ", 0 ticks_crit"
-			+ ", 0 total_normal"
-			+ ", 0 total_crit"
-			+ ", 0 total_effective"
-			+ ", 0 total"
-			+ ", ea.absorbed"
-			+ ", e.timestamp"
-			+ " FROM events e"
-			+ " INNER JOIN effects f ON (f.is_absorption = TRUE AND f.event_id_from = e.event_id)"
-			+ " INNER JOIN absorptions a ON (a.effect_id = f.effect_id)"
-			+ " INNER JOIN events ea ON (ea.event_id = a.event_id)"
-			+ " WHERE ea.event_id BETWEEN :eventIdFrom AND :eventIdTo"
-			+ " AND e.source_name = :playerName) e"
-			+ " %pivots_where"
-			+ " GROUP BY %pivots_group"
-			+ "), totals AS ("
-			+ " SELECT SUM(CASE WHEN effect_guid = " + EntityGuid.Heal + " AND source_name = :playerName THEN event_value ELSE 0 END) total"
+			+ " SELECT %pivots_cols" // ability_name, ability_guid
+			+ SQL_GET_HEALING_DONE_SUMS
+			+ " %pivots_where" // target_name != :playerName
+			+ " GROUP BY %pivots_group" // ability_name, ability_guid
+			+ " ) a"
+			+ " INNER JOIN ("
+			+ " SELECT SUM(CASE WHEN effect_guid = " + EntityGuid.Heal + " AND source_name = :playerName THEN value ELSE 0 END) total"
 			+ ", SUM(CASE WHEN effective_heal IS NOT NULL AND source_name = :playerName THEN effective_heal ELSE 0 END) total_effective"
+			//+ ", SUM(CASE WHEN absorbed IS NOT NULL AND target_name = :playerName THEN absorbed ELSE 0 END) total_absorbed" // XXX
 			+ ", (SELECT SUM(xea.absorbed) FROM events xe"
 			+ "		INNER JOIN effects xf ON (xf.is_absorption = TRUE AND xf.event_id_from = xe.event_id)"
 			+ " 	INNER JOIN absorptions xa ON (xa.effect_id = xf.effect_id)"
@@ -459,29 +419,15 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 			+ ", MAX(timestamp) timestamp"
 			+ " FROM events e"
 			+ " WHERE e.event_id BETWEEN :eventIdFrom AND :eventIdTo"
-			+ "), dots AS ("
+			+ ") t"
+			// dot names and action counts
+			+ " LEFT JOIN ("
 			+ SQL_GET_DOT_NAMES
-			+ "), targets AS ("
+			+ ") dots ON (dots.effect_guid = a.ability_guid AND dots.ability_name != a.ability_name)"
+			// targets
+			+ " LEFT JOIN ("
 			+ SQL_GET_TARGET_NAMES
-			+ ")"
-			+ " SELECT a.target_name, a.target_instance, a.ability_name, a.ability_guid"
-			+ ", a.actions, a.ticks, a.ticks_normal, a.ticks_crit"
-			+ ", a.total_normal, a.total_crit, a.total_effective, a.max, a.total, a.absorbed"
-			+ ", a.sub_time_from, a.sub_time_to"
-			+ ", (CASE WHEN a.ticks > 0 THEN ROUND(a.total * 1.0 / a.ticks) ELSE 0 END) avg_normal"
-			+ ", (CASE WHEN a.ticks_crit > 0 THEN ROUND(a.total_crit * 1.0 / a.ticks_crit) ELSE 0 END) avg_crit"
-			+ ", (CASE WHEN a.ticks > 0 THEN ROUND(a.ticks_crit * 100.0 / a.ticks, 2) ELSE 0 END) AS pct_crit"
-			+ ", (CASE WHEN a.total > 0 THEN ROUND(a.total_effective * 100.0 / a.total, 1) ELSE 0 END) AS pct_effective"
-			+ ", (CASE WHEN t.total_effective + t.total_absorbed > 0 THEN ROUND((a.total_effective + a.absorbed) * 100.0 / (t.total_effective + t.total_absorbed), 1) ELSE 0 END) AS pct_total"
-			+ ", ROUND(a.total * 1000.0 / GREATEST(1000, DATEDIFF('MILLISECOND', :timeFrom, CASE WHEN :timeTo IS NOT NULL THEN :timeTo ELSE t.timestamp END))) hps"
-			+ ", ROUND(a.total_effective * 1000.0 / GREATEST(1000, DATEDIFF('MILLISECOND', :timeFrom, CASE WHEN :timeTo IS NOT NULL THEN :timeTo ELSE t.timestamp END))) ehps"
-			+ ", ROUND(a.absorbed * 1000.0 / GREATEST(1000, DATEDIFF('MILLISECOND', :timeFrom, CASE WHEN :timeTo IS NOT NULL THEN :timeTo ELSE t.timestamp END))) aps"
-			+ ", dots.ability_name AS dot_name, dots.actions AS dot_actions"
-			+ ", tt.target_time_from, tt.target_time_to, a.sub_time_from, a.sub_time_to"
-			+ " FROM healing_stats a"
-			+ " INNER JOIN totals t ON (1=1)"
-			+ " LEFT JOIN dots ON (dots.effect_guid = %join_ability_guid AND dots.ability_name != %join_ability_name)"
-			+ " LEFT JOIN targets tt ON (tt.target_name = a.target_name AND tt.target_instance = a.target_instance)"
+			+ " ) tt ON (tt.target_name = a.target_name AND tt.target_instance = a.target_instance)"
 			+ " ORDER BY a.total DESC",
 
 	SQL_GET_SOURCE_NAMES = "SELECT source_type, source_name, source_guid, source_instance"
@@ -492,12 +438,12 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 
 	SQL_GET_DAMAGE_TAKEN_SUMS =
 			", COUNT(*) ticks"
-					+ ", SUM(CASE WHEN mitigation_name IS NOT NULL AND mitigation_guid != " + EntityGuid.Immune + " AND event_value > 0 THEN 1 ELSE 0 END) ticks_shield"
-					+ ", SUM(CASE WHEN mitigation_name IS NOT NULL AND mitigation_guid != " + EntityGuid.Immune + " AND event_value = 0 THEN 1 ELSE 0 END) ticks_miss"
+					+ ", SUM(CASE WHEN mitigation_name IS NOT NULL AND mitigation_guid != " + EntityGuid.Immune + " AND value > 0 THEN 1 ELSE 0 END) ticks_shield"
+					+ ", SUM(CASE WHEN mitigation_name IS NOT NULL AND mitigation_guid != " + EntityGuid.Immune + " AND value = 0 THEN 1 ELSE 0 END) ticks_miss"
 					+ ", SUM(absorbed) total_absorbed"
-					+ ", SUM(event_value) total"
-					+ ", SUM(CASE WHEN (damage_guid IN (" + EntityGuid.Internal + ", " + EntityGuid.Elemental + ")) THEN event_value ELSE 0 END) total_ie"
-					+ ", MAX(event_value) max"
+					+ ", SUM(value) total"
+					+ ", SUM(CASE WHEN (damage_guid IN (" + EntityGuid.Internal + ", " + EntityGuid.Elemental + ")) THEN value ELSE 0 END) total_ie"
+					+ ", MAX(value) max"
 					+ ", GROUP_CONCAT(DISTINCT damage_name) damage_type"
 					+ ", MIN(timestamp) sub_time_from, MAX(timestamp) sub_time_to"
 					+ " FROM events e"
@@ -505,43 +451,30 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 					+ " AND target_name = :playerName"
 					+ " AND effect_guid IN (" + EntityGuid.Damage + ")",
 
-	SQL_GET_DAMAGE_TAKEN_TOTALS = "WITH damage_taken_stats AS ("
-			+ " SELECT %pivots_cols"
-			+ ", COUNT(*) ticks"
-			+ ", SUM(CASE WHEN mitigation_name IS NOT NULL AND mitigation_guid != " + EntityGuid.Immune + " AND event_value > 0 THEN 1 ELSE 0 END) ticks_shield"
-			+ ", SUM(CASE WHEN mitigation_name IS NOT NULL AND mitigation_guid != " + EntityGuid.Immune + " AND event_value = 0 THEN 1 ELSE 0 END) ticks_miss"
-			+ ", SUM(absorbed) total_absorbed"
-			+ ", SUM(event_value) total"
-			+ ", SUM(CASE WHEN (damage_guid IN (" + EntityGuid.Internal + ", " + EntityGuid.Elemental + ")) THEN event_value ELSE 0 END) total_ie"
-			+ ", MAX(event_value) max"
-			+ ", GROUP_CONCAT(DISTINCT damage_name) damage_type"
-			+ ", MIN(timestamp) sub_time_from, MAX(timestamp) sub_time_to"
-			+ " FROM events e"
-			+ " WHERE event_id BETWEEN :eventIdFrom AND :eventIdTo"
-			+ " AND target_name = :playerName"
-			+ " AND effect_guid IN (" + EntityGuid.Damage + ")"
-			+ " %pivots_where"
-			+ " GROUP BY %pivots_group"
-			+ "), totals AS ("
-			+ " SELECT SUM(CASE WHEN effect_guid = " + EntityGuid.Damage + " AND target_name = :playerName THEN event_value ELSE 0 END) total"
-			+ ", MAX(timestamp) timestamp"
-			+ " FROM events e"
-			+ " WHERE e.event_id BETWEEN :eventIdFrom AND :eventIdTo"
-			+ "), sources AS ("
-			+ SQL_GET_SOURCE_NAMES
-			+ ")"
-			+ " SELECT a.source_name, a.source_instance, a.ability_name, a.ability_guid"
-			+ ", a.ticks, a.ticks_shield, a.ticks_miss, a.total_absorbed, a.total, a.total_ie, a.max, a.damage_type"
-			+ ", a.sub_time_from, a.sub_time_to"
-			+ ", (CASE WHEN a.ticks > 0 THEN ROUND(a.total * 1.0 / a.ticks) ELSE 0 END) avg_normal"
-			+ ", (CASE WHEN a.ticks > 0 THEN ROUND(a.ticks_shield * 100.0 / a.ticks, 2) ELSE 0 END) AS pct_shield"
-			+ ", (CASE WHEN a.ticks > 0 THEN ROUND(a.ticks_miss * 100.0 / a.ticks, 2) ELSE 0 END) AS pct_miss"
+	SQL_GET_DAMAGE_TAKEN_TOTALS = "SELECT a.*"
+			+ ", (CASE WHEN ticks > 0 THEN ROUND(a.total * 1.0 / ticks) ELSE 0 END) avg_normal"
+			+ ", (CASE WHEN ticks > 0 THEN ROUND(ticks_shield * 100.0 / ticks, 2) ELSE 0 END) AS pct_shield"
+			+ ", (CASE WHEN ticks > 0 THEN ROUND(ticks_miss * 100.0 / ticks, 2) ELSE 0 END) AS pct_miss"
 			+ ", (CASE WHEN t.total > 0 THEN ROUND(a.total * 100.0 / t.total, 1) ELSE 0 END) AS pct_total"
 			+ ", ROUND(a.total * 1000.0 / GREATEST(1000, DATEDIFF('MILLISECOND', :timeFrom, CASE WHEN :timeTo IS NOT NULL THEN :timeTo ELSE t.timestamp END))) dtps"
 			+ ", ts.source_time_from, ts.source_time_to, a.sub_time_from, a.sub_time_to"
-			+ " FROM damage_taken_stats a"
-			+ " INNER JOIN totals t ON (1=1)"
-			+ " LEFT JOIN sources ts ON (ts.source_name = a.source_name AND ts.source_instance = a.source_instance)"
+			// sums
+			+ " FROM ("
+			+ " SELECT %pivots_cols" // ability_name, ability_guid
+			+ SQL_GET_DAMAGE_TAKEN_SUMS
+			+ " %pivots_where" // target_name != :playerName
+			+ " GROUP BY %pivots_group" // ability_name, ability_guid
+			+ " ) a"
+			// total
+			+ " INNER JOIN ("
+			+ " SELECT SUM(CASE WHEN effect_guid = " + EntityGuid.Damage + " AND target_name = :playerName THEN value ELSE 0 END) total, MAX(timestamp) timestamp"
+			+ " FROM events e"
+			+ " WHERE e.event_id BETWEEN :eventIdFrom AND :eventIdTo"
+			+ ") t"
+			// sources
+			+ " LEFT JOIN ("
+			+ SQL_GET_SOURCE_NAMES
+			+ " ) ts ON (ts.source_name = a.source_name AND ts.source_instance = a.source_instance)"
 			+ " ORDER BY a.total DESC",
 
 	SQL_GET_HEALING_TAKEN_SUMS =
@@ -560,10 +493,10 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 					+ ", (CASE WHEN NOT is_crit THEN 1 ELSE 0 END) ticks_normal"
 					+ ", (CASE WHEN is_crit THEN 1 ELSE 0 END) ticks_crit"
 
-					+ ", (CASE WHEN NOT is_crit THEN event_value ELSE 0 END) total_normal"
-					+ ", (CASE WHEN is_crit THEN event_value ELSE 0 END) total_crit"
+					+ ", (CASE WHEN NOT is_crit THEN value ELSE 0 END) total_normal"
+					+ ", (CASE WHEN is_crit THEN value ELSE 0 END) total_crit"
 					+ ", (CASE WHEN effective_heal IS NOT NULL THEN effective_heal ELSE 0 END) total_effective"
-					+ ", (event_value) total"
+					+ ", (value) total"
 					+ ", 0 absorbed"
 					+ ", timestamp"
 					+ " FROM events e"
@@ -589,74 +522,36 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 					+ " WHERE ea.event_id BETWEEN :eventIdFrom AND :eventIdTo"
 					+ " AND e.target_name = :playerName) e",
 
-	SQL_GET_HEALING_TAKEN_TOTALS = "WITH healing_taken_stats AS ("
-			+ " SELECT %pivots_cols"
-			+ ", COUNT(DISTINCT event_id) ticks"
-			+ ", SUM(ticks_normal) ticks_normal"
-			+ ", SUM(ticks_crit) ticks_crit"
-			+ ", SUM(total_normal) total_normal"
-			+ ", SUM(total_crit) total_crit"
-			+ ", SUM(total_effective) total_effective"
-			+ ", SUM(e.total) total"
-			+ ", SUM(absorbed) absorbed"
-			+ ", MIN(timestamp) sub_time_from, MAX(timestamp) sub_time_to"
-			+ " FROM ("
-			+ "SELECT %pivots_cols, e.event_id"
-			+ ", (CASE WHEN NOT is_crit THEN 1 ELSE 0 END) ticks_normal"
-			+ ", (CASE WHEN is_crit THEN 1 ELSE 0 END) ticks_crit"
-			+ ", (CASE WHEN NOT is_crit THEN event_value ELSE 0 END) total_normal"
-			+ ", (CASE WHEN is_crit THEN event_value ELSE 0 END) total_crit"
-			+ ", (CASE WHEN effective_heal IS NOT NULL THEN effective_heal ELSE 0 END) total_effective"
-			+ ", (event_value) total"
-			+ ", 0 absorbed"
-			+ ", timestamp"
-			+ " FROM events e"
-			+ " WHERE event_id BETWEEN :eventIdFrom AND :eventIdTo"
-			+ " AND target_name = :playerName"
-			+ " AND effect_guid IN (" + EntityGuid.Heal + ")"
-			+ " UNION ALL"
-			+ " SELECT %pivots_cols, e.event_id"
-			+ ", 0 ticks_normal"
-			+ ", 0 ticks_crit"
-			+ ", 0 total_normal"
-			+ ", 0 total_crit"
-			+ ", 0 total_effective"
-			+ ", 0 total"
-			+ ", ea.absorbed"
-			+ ", e.timestamp"
-			+ " FROM events e"
-			+ " INNER JOIN effects f ON (f.is_absorption = TRUE AND f.event_id_from = e.event_id)"
-			+ " INNER JOIN absorptions a ON (a.effect_id = f.effect_id)"
-			+ " INNER JOIN events ea ON (ea.event_id = a.event_id)"
-			+ " WHERE ea.event_id BETWEEN :eventIdFrom AND :eventIdTo"
-			+ " AND e.target_name = :playerName) e"
-			+ " %pivots_where"
-			+ " GROUP BY %pivots_group"
-			+ "), totals AS ("
-			+ " SELECT SUM(CASE WHEN effect_guid = " + EntityGuid.Heal + " AND target_name = :playerName THEN event_value ELSE 0 END) total"
-			+ ", SUM(CASE WHEN effective_heal IS NOT NULL AND target_name = :playerName THEN effective_heal ELSE 0 END) total_effective"
-			+ ", SUM(CASE WHEN absorbed IS NOT NULL AND target_name = :playerName THEN absorbed ELSE 0 END) total_absorbed"
-			+ ", MAX(timestamp) timestamp"
-			+ " FROM events e"
-			+ " WHERE e.event_id BETWEEN :eventIdFrom AND :eventIdTo"
-			+ "), sources AS ("
-			+ SQL_GET_SOURCE_NAMES
-			+ ")"
-			+ " SELECT a.source_name, a.source_instance, a.ability_name, a.ability_guid"
-			+ ", a.ticks, a.ticks_normal, a.ticks_crit, a.total_normal, a.total_crit, a.total_effective, a.total, a.absorbed"
-			+ ", a.sub_time_from, a.sub_time_to"
-			+ ", (CASE WHEN a.ticks > 0 THEN ROUND(a.total * 1.0 / a.ticks) ELSE 0 END) avg_normal"
-			+ ", (CASE WHEN a.ticks_crit > 0 THEN ROUND(a.total_crit * 1.0 / a.ticks_crit) ELSE 0 END) avg_crit"
-			+ ", (CASE WHEN a.ticks > 0 THEN ROUND(a.ticks_crit * 100.0 / a.ticks, 2) ELSE 0 END) AS pct_crit"
+	SQL_GET_HEALING_TAKEN_TOTALS = "SELECT a.*"
+			+ ", (CASE WHEN ticks > 0 THEN ROUND(a.total * 1.0 / ticks) ELSE 0 END) avg_normal"
+			+ ", (CASE WHEN ticks_crit > 0 THEN ROUND(total_crit * 1.0 / ticks_crit) ELSE 0 END) avg_crit"
+			+ ", (CASE WHEN ticks > 0 THEN ROUND(ticks_crit * 100.0 / ticks, 2) ELSE 0 END) AS pct_crit"
 			+ ", (CASE WHEN a.total > 0 THEN ROUND(a.total_effective * 100.0 / a.total, 1) ELSE 0 END) AS pct_effective"
 			+ ", (CASE WHEN t.total_effective + t.total_absorbed > 0 THEN ROUND((a.total_effective + a.absorbed) * 100.0 / (t.total_effective + t.total_absorbed), 1) ELSE 0 END) AS pct_total"
 			+ ", ROUND(a.total * 1000.0 / GREATEST(1000, DATEDIFF('MILLISECOND', :timeFrom, CASE WHEN :timeTo IS NOT NULL THEN :timeTo ELSE t.timestamp END))) htps"
 			+ ", ROUND(a.total_effective * 1000.0 / GREATEST(1000, DATEDIFF('MILLISECOND', :timeFrom, CASE WHEN :timeTo IS NOT NULL THEN :timeTo ELSE t.timestamp END))) ehtps"
 			+ ", ROUND(a.absorbed * 1000.0 / GREATEST(1000, DATEDIFF('MILLISECOND', :timeFrom, CASE WHEN :timeTo IS NOT NULL THEN :timeTo ELSE t.timestamp END))) aps"
 			+ ", ts.source_time_from, ts.source_time_to, a.sub_time_from, a.sub_time_to"
-			+ " FROM healing_taken_stats a"
-			+ " INNER JOIN totals t ON (1=1)"
-			+ " LEFT JOIN sources ts ON (ts.source_name = a.source_name AND ts.source_instance = a.source_instance)"
+			// sums
+			+ " FROM ("
+			+ " SELECT %pivots_cols" // ability_name, ability_guid
+			+ SQL_GET_HEALING_TAKEN_SUMS
+			+ " %pivots_where" // target_name != :playerName
+			+ " GROUP BY %pivots_group" // ability_name, ability_guid
+			+ " ) a"
+			// total
+			+ " INNER JOIN ("
+			+ " SELECT SUM(CASE WHEN effect_guid = " + EntityGuid.Heal + " AND target_name = :playerName THEN value ELSE 0 END) total"
+			+ ", SUM(CASE WHEN effective_heal IS NOT NULL AND target_name = :playerName THEN effective_heal ELSE 0 END) total_effective"
+			+ ", SUM(CASE WHEN absorbed IS NOT NULL AND target_name = :playerName THEN absorbed ELSE 0 END) total_absorbed"
+			+ ", MAX(timestamp) timestamp"
+			+ " FROM events e"
+			+ " WHERE e.event_id BETWEEN :eventIdFrom AND :eventIdTo"
+			+ ") t"
+			// sources
+			+ " LEFT JOIN ("
+			+ SQL_GET_SOURCE_NAMES
+			+ " ) ts ON (ts.source_name = a.source_name AND ts.source_instance = a.source_instance)"
 			+ " ORDER BY a.total DESC",
 
 	SQL_GET_COMBAT_EFFECTS =
@@ -815,20 +710,19 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 			}
 
 			getJdbcTemplate().update(create ? SQL_INSERT_STATS : SQL_UPDATE_STATS, new Object[]{
-					c.getCombatId(),
-					entry.getKey().getName(),
-					fromTs,
-					toTs,
 					c.getEventIdFrom(),
 					c.getEventIdTo(),
-					entry.getValue() != null ? entry.getValue().name() : null,
+					fromTs,
+					toTs,
 					stats.getActions(),
 					stats.getApm(), stats.getDamage(), stats.getDps(), stats.getHeal(), stats.getHps(), stats.getEffectiveHeal(), stats.getEhps(), stats.getEhpsPercent(),
-					stats.getEffectiveHealTakenTotal(),
 					stats.getDamageTaken(), stats.getDtps(),
 					stats.getAbsorbed(), stats.getAps(),
-					stats.getHealTaken(), stats.getHpsTaken(), stats.getEhpsTaken(),
-					stats.getThreat(), stats.getThreatPositive(), stats.getTps()
+					stats.getHealTaken(), stats.getHpsTaken(), stats.getEhpsTaken(), stats.getEffectiveHealTakenTotal(),
+					stats.getThreat(), stats.getThreatPositive(), stats.getTps(),
+					entry.getValue() != null ? entry.getValue().name() : null,
+					c.getCombatId(),
+					entry.getKey().getName()
 			});
 		}
 
@@ -1146,8 +1040,8 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 						e.setEffect(context.getEntity(rs.getString("effect_name"), rs.getLong("effect_guid")));
 					}
 
-					if (getValueOrNull(rs, rs.getInt("event_value")) != null) {
-						e.setValue(rs.getInt("event_value"));
+					if (getValueOrNull(rs, rs.getInt("value")) != null) {
+						e.setValue(rs.getInt("value"));
 						e.setCrit(rs.getBoolean("is_crit"));
 					}
 
@@ -1269,43 +1163,30 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 				pivotsGroup = new StringBuilder();
 
 		if (byTargetInstance) {
-			pivotsCols.append("e.target_name, e.target_instance");
+			pivotsCols.append(", e.target_name, e.target_instance");
 			pivotsWhere.append(" AND e.target_name != :playerName");
-			pivotsGroup.append("e.target_name");
-			pivotsGroup.append(", e.target_instance");
+			pivotsGroup.append(", e.target_name, e.target_instance");
+
 		} else if (byTargetType) {
-			pivotsCols.append("e.target_name, 0 target_instance");
+			pivotsCols.append(", e.target_name, 0 target_instance");
 			pivotsWhere.append(" AND e.target_name != :playerName");
-			pivotsGroup.append("e.target_name");
+			pivotsGroup.append(", e.target_name");
+
 		} else {
-			pivotsCols.append("'Total' AS target_name, 0 AS target_instance");
-			// Do not append anything to pivotsGroup
+			pivotsCols.append(", 'Total' target_name, 0 target_instance");
 		}
 
 		if (byAbility) {
 			pivotsCols.append(", e.ability_name, e.ability_guid");
-			if (pivotsGroup.length() > 0) {
-				pivotsGroup.append(", e.ability_name, e.ability_guid");
-			} else {
-				pivotsGroup.append("e.ability_name, e.ability_guid");
-			}
+			pivotsGroup.append(", e.ability_name, e.ability_guid");
 		} else {
-			pivotsCols.append(", 'Total' AS ability_name, 0 AS ability_guid");
-			// Do not append anything to pivotsGroup
+			pivotsCols.append(", 'Total' ability_name, 0 ability_guid");
 		}
 
-		if (pivotsGroup.length() == 0) {
-			pivotsGroup.append("1");
-		}
-
-		String finalSql = SQL_GET_DAMAGE_DEALT_TOTALS
-                        .replace("%pivots_cols", pivotsCols.toString())
-                        .replace("%pivots_where", pivotsWhere.length() > 0 ? pivotsWhere.toString() : "")
-                        .replace("%pivots_group", pivotsGroup.length() > 0 ? pivotsGroup.toString() : "1")
-                        .replace("%join_ability_guid", byAbility ? "a.ability_guid" : "0")
-                        .replace("%join_ability_name", byAbility ? "a.ability_name" : "'Total'");
-
-                return getJdbcTemplate().query(finalSql
+		return getJdbcTemplate().query(SQL_GET_DAMAGE_DEALT_TOTALS
+						.replace("%pivots_cols", pivotsCols.substring(2))
+						.replace("%pivots_where", pivotsWhere.length() > 0 ? pivotsWhere.toString() : "")
+						.replace("%pivots_group", pivotsGroup.length() > 0 ? pivotsGroup.substring(2) : "1")
 				, args,
 				(rs, rowNum) -> new DamageDealtStats(
 						rs.getString("target_name"),
@@ -1352,36 +1233,29 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 				pivotsGroup = new StringBuilder();
 
 		if (byTarget) {
-			pivotsCols.append("e.target_name, 0 target_instance");
-			pivotsGroup.append("e.target_name");
+			pivotsCols.append(", e.target_name, 0 target_instance");
+			pivotsGroup.append(", e.target_name");
+
 		} else {
-			pivotsCols.append("'Total' AS target_name, 0 AS target_instance");
+			pivotsCols.append(", 'Total' target_name, 0 target_instance");
 		}
 
 		if (byAbility) {
 			pivotsCols.append(", e.ability_name, e.ability_guid");
-			if (pivotsGroup.length() > 0) {
-				pivotsGroup.append(", e.ability_name, e.ability_guid");
-			} else {
-				pivotsGroup.append("e.ability_name, e.ability_guid");
-			}
+			pivotsGroup.append(", e.ability_name, e.ability_guid");
 		} else {
-			pivotsCols.append(", 'Total' AS ability_name, 0 AS ability_guid");
+			pivotsCols.append(", 'Total' ability_name, 0 ability_guid");
 		}
 
-		String finalSql = SQL_GET_HEALING_DONE_TOTALS
-				.replace("%pivots_cols", pivotsCols.toString())
-				.replace("%pivots_where", pivotsWhere.length() > 0 ? pivotsWhere.toString() : "")
-				.replace("%pivots_group", pivotsGroup.length() > 0 ? pivotsGroup.toString() : "1")
-				.replace("%join_ability_guid", byAbility ? "a.ability_guid" : "0")
-				.replace("%join_ability_name", byAbility ? "a.ability_name" : "'Total'");
-
-		return getJdbcTemplate().query(finalSql
+		return getJdbcTemplate().query(SQL_GET_HEALING_DONE_TOTALS
+						.replace("%pivots_cols", pivotsCols.substring(2))
+						.replace("%pivots_where", pivotsWhere.length() > 0 ? pivotsWhere : "")
+						.replace("%pivots_group", pivotsGroup.length() > 0 ? pivotsGroup.substring(2) : "1")
 				, args,
 				(rs, rowNum) -> new HealingDoneStats(
 						rs.getString("target_name"),
 						(rs.getString("dot_name") != null ? rs.getString("dot_name") + ": " : "") + rs.getString("ability_name"),
-						(rs.getString("dot_name") != null ? rs.getLong("dot_guid") : rs.getLong("ability_guid")),
+						rs.getLong("ability_guid"),
 						rs.getString("dot_name") != null ? rs.getInt("dot_actions") : rs.getInt("actions"),
 						rs.getInt("ticks"),
 						rs.getInt("ticks_normal"),
@@ -1400,9 +1274,7 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 						rs.getDouble("pct_effective"),
 						rs.getInt("aps"),
 						rs.getInt("absorbed"),
-						Math.max(
-								bounds.timeFrom.getTime(),
-								getTimestamp(rs, (getTimestamp(rs, "target_time_from") != null ? "target_time_from" : "sub_time_from")).getTime()),
+						getTimestamp(rs, (getTimestamp(rs, "target_time_from") != null ? "target_time_from" : "sub_time_from")).getTime(),
 						getTimestamp(rs, (getTimestamp(rs, "target_time_to") != null ? "target_time_to" : "sub_time_to")).getTime()
 				));
 	}
@@ -1490,41 +1362,29 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 				pivotsGroup = new StringBuilder();
 
 		if (bySourceInstance) {
-			pivotsCols.append("e.source_name, e.source_instance");
-			pivotsGroup.append("e.source_name, e.source_instance");
+			pivotsCols.append(", e.source_name, e.source_instance");
+			pivotsGroup.append(", e.source_name, e.source_instance");
+
 		} else if (bySourceType) {
-			pivotsCols.append("e.source_name, 0 AS source_instance");
-			pivotsGroup.append("e.source_name");
+			pivotsCols.append(", e.source_name, 0 source_instance");
+			pivotsGroup.append(", e.source_name");
+
 		} else {
-			pivotsCols.append("'Total' AS source_name, 0 AS source_instance");
-			// Don't add to GROUP BY for Total case - we want a single row
+			pivotsCols.append(", 'Total' source_name, 0 source_instance");
 		}
 
 		if (byAbility) {
 			pivotsCols.append(", e.ability_name, e.ability_guid");
-			// Only add to GROUP BY if we have source grouping, otherwise we want a single row per ability
-			if (bySourceType || bySourceInstance) {
-				pivotsGroup.append(", e.ability_name, e.ability_guid");
-			} else {
-				pivotsGroup.append("e.ability_name, e.ability_guid");
-			}
+			pivotsGroup.append(", e.ability_name, e.ability_guid");
 		} else {
-			pivotsCols.append(", 'Total' AS ability_name, 0 AS ability_guid");
-			// Don't add to GROUP BY for Total case - we want a single row
+			pivotsCols.append(", 'Total' ability_name, 0 ability_guid");
 		}
 
-		// Ensure pivotsGroup is not empty when all checkboxes are disabled
-		if (pivotsGroup.length() == 0) {
-			pivotsGroup.append("1");
-		}
-
-		String finalSql = SQL_GET_DAMAGE_TAKEN_TOTALS
-                        .replace("%pivots_cols", pivotsCols.toString())
-                        .replace("%pivots_where", pivotsWhere.length() > 0 ? pivotsWhere.toString() : "")
-                        .replace("%pivots_group", pivotsGroup.length() > 0 ? pivotsGroup.toString() : "1");
-
-                return getJdbcTemplate().query(finalSql
-						, args,
+		return getJdbcTemplate().query(SQL_GET_DAMAGE_TAKEN_TOTALS
+						.replace("%pivots_cols", pivotsCols.substring(2))
+						.replace("%pivots_where", pivotsWhere.length() > 0 ? pivotsWhere : "")
+						.replace("%pivots_group", pivotsGroup.length() > 0 ? pivotsGroup.substring(2) : "1")
+				, args,
 				(rs, rowNum) -> new DamageTakenStats(
 						rs.getString("source_name"),
 						rs.getString("ability_name"),
@@ -1561,35 +1421,25 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 				pivotsGroup = new StringBuilder();
 
 		if (bySource) {
-			pivotsCols.append("e.source_name, 0 AS source_instance");
-			pivotsGroup.append("e.source_name, e.source_instance");
+			pivotsCols.append(", e.source_name, 0 source_instance");
+			pivotsGroup.append(", e.source_name");
 
 		} else {
-			pivotsCols.append("'Total' AS source_name, 0 AS source_instance");
+			pivotsCols.append(", 'Total' source_name, 0 source_instance");
 		}
 
 		if (byAbility) {
 			pivotsCols.append(", e.ability_name, e.ability_guid");
-			if (bySource) {
-				pivotsGroup.append(", e.ability_name, e.ability_guid");
-			} else {
-				pivotsGroup.append("e.ability_name, e.ability_guid");
-			}
+			pivotsGroup.append(", e.ability_name, e.ability_guid");
 		} else {
-			pivotsCols.append(", 'Total' AS ability_name, 0 AS ability_guid");
+			pivotsCols.append(", 'Total' ability_name, 0 ability_guid");
 		}
 
-		if (pivotsGroup.length() == 0) {
-			pivotsGroup.append("1");
-		}
-
-		String finalSql = SQL_GET_HEALING_TAKEN_TOTALS
-                        .replace("%pivots_cols", pivotsCols.toString())
-                        .replace("%pivots_where", pivotsWhere.length() > 0 ? pivotsWhere.toString() : "")
-                        .replace("%pivots_group", pivotsGroup.length() > 0 ? pivotsGroup.toString() : "1");
-
-                return getJdbcTemplate().query(finalSql
-						, args,
+		return getJdbcTemplate().query(SQL_GET_HEALING_TAKEN_TOTALS
+						.replace("%pivots_cols", pivotsCols.substring(2))
+						.replace("%pivots_where", pivotsWhere.length() > 0 ? pivotsWhere : "")
+						.replace("%pivots_group", pivotsGroup.length() > 0 ? pivotsGroup.substring(2) : "1")
+				, args,
 				(rs, rowNum) -> new HealingTakenStats(
 						rs.getString("source_name"),
 						rs.getString("ability_name"),
@@ -1766,9 +1616,9 @@ public class CombatDaoImpl extends H2Dao implements CombatDao {
 			try {
 				return (int) Math.min(Math.max(rs.getLong(col), Integer.MIN_VALUE), Integer.MAX_VALUE);
 
-			                        } catch (Exception e2) {
-                                throw new IllegalArgumentException("Unable to read value " + col + ": " + e2.getMessage());
-                        }
+			} catch (Exception e2) {
+				throw new IllegalArgumentException("Unable to read value " + col + ": " + e2.getMessage());
+			}
 		}
 	}
 

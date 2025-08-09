@@ -28,7 +28,7 @@ public class Event implements Serializable {
 	Entity action;
 	Entity effect;
 
-	Integer eventValue;
+	Integer value;
 	Boolean isCrit;
 
 	Entity damage;
@@ -110,11 +110,11 @@ public class Event implements Serializable {
 	}
 
 	public Integer getValue() {
-		return eventValue;
+		return value;
 	}
 
 	public void setValue(Integer value) {
-		this.eventValue = value;
+		this.value = value;
 	}
 
 	public Boolean isCrit() {
@@ -236,7 +236,7 @@ public class Event implements Serializable {
 		return formatTs(timestamp)
 			+ ": [" + source + "] on [" + target + "]"
 			+ " casted [" + ability + "] causing [" + action + "] of [" + effect + "]"
-			+ (eventValue != null ? " for [" + (isCrit ? '*' : "") + eventValue + "]" : "")
+			+ (value != null ? " for [" + (isCrit ? '*' : "") + value + "]" : "")
 			+ (effectiveHeal != null ? " ~[" + effectiveHeal + "]" : "")
 			+ (damage != null ? " damage [" + damage + "]" : "")
 			+ (reflect != null ? " reflect [" + reflect + "]" : "")

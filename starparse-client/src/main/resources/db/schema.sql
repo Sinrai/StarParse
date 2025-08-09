@@ -33,7 +33,7 @@ CREATE TABLE events (
 	effect_name VARCHAR(50) NULL,
 	effect_guid BIGINT NULL,
 	
-	event_value BIGINT NULL,
+	value BIGINT NULL,
 	is_crit BOOLEAN NULL,
 
 	damage_name VARCHAR(50) NULL,
